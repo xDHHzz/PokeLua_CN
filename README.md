@@ -3,7 +3,7 @@ Useful lua scripts for RNG abusing in Pokémon games.
 
 Join [Pokemon RNG](https://www.pokemonrng.com) or [Devon Studios](https://devonstudios.it) discord servers to talk about RNG or for assistance!
 
-[![PokemonRNG](https://discordapp.com/assets/07dca80a102d4149e9736d4b162cff6f.ico)](https://www.discord.gg/d8JuAvg)
+[![PokemonRNG](https://discordapp.com/assets/07dca80a102d4149e9736d4b162cff6f.ico)](https://discord.gg/d8JuAvg)
 [![Devon Studios](https://discordapp.com/assets/07dca80a102d4149e9736d4b162cff6f.ico)](https://discord.gg/7gNVdkdBwA)
 
 ## Gen 1 features
