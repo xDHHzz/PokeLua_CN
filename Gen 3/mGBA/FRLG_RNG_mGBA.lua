@@ -560,7 +560,13 @@ function showEncounterMissingSteps(buffer)
 
  local encounterRate = getBikeMod(16 * encounterRateBase)
  local encounterMissingSteps = encounterRateBuff == 0 and 0 or getEncounterMissingSteps(encounterRate, encounterRateBuff, encounterRateBase)
- buffer:print(string.format("Steps for wild encounter: %d\n\n\n", encounterMissingSteps))
+ buffer:print(string.format("Steps for wild encounter: %d\n", encounterMissingSteps))
+end
+
+function showStepCounter(buffer)
+ local stepCounterAddr = emu:read32(saveBlock1PointerAddr) + 0x309A
+ local stepCounter = 255 - emu:read8(stepCounterAddr)
+ buffer:print(string.format("Steps counter (Friendship/Egg cycles): %d\n\n\n", stepCounter))
 end
 
 function getPokemonIDs(addr)
@@ -885,6 +891,7 @@ end
 function updateCaptureBuffer()
  showRngInfo(CaptureInfo)
  showEncounterMissingSteps(CaptureInfo)
+ showStepCounter(CaptureInfo)
  showInfo(enemyAddr, CaptureInfo)
  showTrainerIDs(CaptureInfo)
 end
