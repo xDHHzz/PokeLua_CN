@@ -713,7 +713,7 @@ function showInfo(pidAddr, buffer)
  local itemIndex = speciesAndItemValue >> 16
  local itemName = itemNamesList[itemIndex + 1]
 
- local friendship = (friendshipAndPPbonusesValue >> 0x8) & 0xFF
+ local friendship = (friendshipAndPPbonusesValue >> 8) & 0xFF
 
  local abilityNumber = (ivsAndAbilityValue >> 0x1F) + 1
  local abilityName = abilityNamesList[pokemonAbilities[(speciesDexNumber ~= nil and speciesDexNumber < 387) and speciesDexNumber or 1][abilityNumber]]
