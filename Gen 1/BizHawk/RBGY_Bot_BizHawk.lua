@@ -4,37 +4,37 @@ rshift = bit.rshift
 band = bit.band
 
 local speciesNamesList = {
- "Rhydon", "Kangaskhan", "Nidoran♂", "Clefairy", "Spearow", "Voltorb", "Nidoking", "Slowbro",
- "Ivysaur", "Exeggutor", "Lickitung", "Exeggcute", "Grimer", "Gengar", "Nidoran♀", "Nidoqueen",
- "Cubone", "Rhyhorn", "Lapras", "Arcanine", "Mew", "Gyarados", "Shellder", "Tentacool", "Gastly",
- "Scyther", "Staryu", "Blastoise", "Pinsir", "Tangela", "MissingNo.", "MissingNo.", "Growlithe",
- "Onix", "Fearow", "Pidgey", "Slowpoke", "Kadabra", "Graveler", "Chansey", "Machoke", "Mr. Mime",
- "Hitmonlee", "Hitmonchan", "Arbok", "Parasect", "Psyduck", "Drowzee", "Golem", "MissingNo.",
- "Magmar", "MissingNo.", "Electabuzz", "Magneton", "Koffing", "MissingNo.", "Mankey", "Seel",
- "Diglett", "Tauros", "MissingNo.", "MissingNo.", "MissingNo.", "Farfetch'd", "Venonat",
- "Dragonite", "MissingNo.", "MissingNo.", "MissingNo.", "Doduo", "Poliwag", "Jynx", "Moltres",
- "Articuno", "Zapdos", "Ditto", "Meowth", "Krabby", "MissingNo.", "MissingNo.", "MissingNo.",
- "Vulpix", "Ninetales", "Pikachu", "Raichu", "MissingNo.", "MissingNo.", "Dratini", "Dragonair",
- "Kabuto", "Kabutops", "Horsea", "Seadra", "MissingNo.", "MissingNo.", "Sandshrew", "Sandslash",
- "Omanyte", "Omastar", "Jigglypuff", "Wigglytuff", "Eevee", "Flareon", "Jolteon", "Vaporeon",
- "Machop", "Zubat", "Ekans", "Paras", "Poliwhirl", "Poliwrath", "Weedle", "Kakuna", "Beedrill",
- "MissingNo.", "Dodrio", "Primeape", "Dugtrio", "Venomoth", "Dewgong", "MissingNo.", "MissingNo.",
- "Caterpie", "Metapod", "Butterfree", "Machamp", "MissingNo.", "Golduck", "Hypno", "Golbat",
- "Mewtwo", "Snorlax", "Magikarp", "MissingNo.", "MissingNo.", "Muk", "MissingNo.", "Kingler",
- "Cloyster", "MissingNo.", "Electrode", "Clefable", "Weezing", "Persian", "Marowak", "MissingNo.",
- "Haunter", "Abra", "Alakazam", "Pidgeotto", "Pidgeot", "Starmie", "Bulbasaur", "Venusaur",
- "Tentacruel", "MissingNo.", "Goldeen", "Seaking", "MissingNo.", "MissingNo.", "MissingNo.",
- "MissingNo.", "Ponyta", "Rapidash", "Rattata", "Raticate", "Nidorino", "Nidorina", "Geodude",
- "Porygon", "Aerodactyl", "MissingNo.", "Magnemite", "MissingNo.", "MissingNo.", "Charmander",
- "Squirtle", "Charmeleon", "Wartortle", "Charizard", "MissingNo.", "MissingNo.", "MissingNo.",
- "MissingNo.", "Oddish", "Gloom", "Vileplume", "Bellsprout", "Weepinbell", "Victreebel"}
+ "钻角犀兽", "袋兽", "尼多朗", "皮皮", "烈雀", "霹雳电球", "尼多王", "呆壳兽",
+ "妙蛙草", "椰蛋树", "大舌头", "蛋蛋", "臭泥", "耿鬼", "尼多兰", "尼多后",
+ "卡拉卡拉", "独角犀牛", "拉普拉斯", "风速狗", "梦幻", "暴鲤龙", "大舌贝", "玛瑙水母", "鬼斯",
+ "飞天螳螂", "海星星", "水箭龟", "凯罗斯", "蔓藤怪", "MissingNo.", "MissingNo.", "卡蒂狗",
+ "大岩蛇", "大嘴雀", "波波", "呆呆兽", "勇基拉", "隆隆石", "吉利蛋", "豪力", "魔墙人偶",
+ "飞腿郎", "快拳郎", "阿柏怪", "派拉斯特", "可达鸭", "催眠貘", "隆隆岩", "MissingNo.",
+ "鸭嘴火兽", "MissingNo.", "电击兽", "三合一磁怪", "瓦斯弹", "MissingNo.", "猴怪", "小海狮",
+ "地鼠", "肯泰罗", "MissingNo.", "MissingNo.", "MissingNo.", "大葱鸭", "毛球",
+ "快龙", "MissingNo.", "MissingNo.", "MissingNo.", "嘟嘟", "蚊香蝌蚪", "迷唇姐", "火焰鸟",
+ "急冻鸟", "闪电鸟", "百变怪", "喵喵", "大钳蟹", "MissingNo.", "MissingNo.", "MissingNo.",
+ "六尾", "九尾", "皮卡丘", "雷丘", "MissingNo.", "MissingNo.", "迷你龙", "哈克龙",
+ "化石盔", "镰刀盔", "墨海马", "海刺龙", "MissingNo.", "MissingNo.", "穿山鼠", "穿山王",
+ "菊石兽", "多刺菊石兽", "胖丁", "胖可丁", "伊布", "火伊布", "雷伊布", "水伊布",
+ "腕力", "超音蝠", "阿柏蛇", "派拉斯", "蚊香君", "蚊香泳士", "独角虫", "铁壳蛹", "大针蜂",
+ "MissingNo.", "嘟嘟利", "火暴猴", "三地鼠", "摩鲁蛾", "白海狮", "MissingNo.", "MissingNo.",
+ "绿毛虫", "铁甲蛹", "巴大蝶", "怪力", "MissingNo.", "哥达鸭", "引梦貘人", "大嘴蝠",
+ "超梦", "卡比兽", "鲤鱼王", "MissingNo.", "MissingNo.", "臭臭泥", "MissingNo.", "巨钳蟹",
+ "刺甲贝", "MissingNo.", "顽皮雷弹", "皮可西", "双弹瓦斯", "猫老大", "嘎啦嘎啦", "MissingNo.",
+ "鬼斯通", "凯西", "胡地", "比比鸟", "大比鸟", "宝石海星", "妙蛙种子", "妙蛙花",
+ "毒刺水母", "MissingNo.", "角金鱼", "金鱼王", "MissingNo.", "MissingNo.", "MissingNo.",
+ "MissingNo.", "小火马", "烈焰马", "小拉达", "拉达", "尼多力诺", "尼多娜", "小拳石",
+ "多边兽", "化石翼龙", "MissingNo.", "小磁怪", "MissingNo.", "MissingNo.", "小火龙",
+ "杰尼龟", "火恐龙", "卡咪龟", "喷火龙", "MissingNo.", "MissingNo.", "MissingNo.",
+ "MissingNo.", "走路草", "臭臭花", "霸王花", "喇叭芽", "口呆花", "大食花"}
 
 local natureNamesList = {
- "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
- "Bold", "Docile", "Relaxed", "Impish", "Lax",
- "Timid", "Hasty", "Serious", "Jolly", "Naive",
- "Modest", "Mild", "Quiet", "Bashful", "Rash",
- "Calm", "Gentle", "Sassy", "Careful", "Quirky"}
+ "勤奋", "怕寂寞", "勇敢", "固执", "顽皮",
+ "大胆", "坦率", "悠闲", "淘气", "乐天",
+ "胆小", "急躁", "认真", "爽朗", "天真",
+ "内敛", "慢吞吞", "冷静", "害羞", "马虎",
+ "温和", "温顺", "自大", "慎重", "浮躁"}
 
 local versionAddr = read16Bit(0x13C)
 local version
@@ -43,7 +43,7 @@ local language = ""
 local warning
 
 local emuWindow = {}
-local mode = {"None", "Gift Bot", "Stationary Bot", "Fishing Bot", "In-Game Trade Bot", "TID Bot", "Pokemon Info"}
+local mode = {"无", "礼物机器人", "定点机器人", "钓鱼机器人", "游戏内交换机器人", "TID 机器人", "宝可梦信息"}
 local index = 1
 local prevKey = {}
 local showInstructionsText = false
@@ -55,45 +55,45 @@ local botOneTime = false
 local partyAddr
 local partySlotsCounterAddr
 local wildDVsAddr
-local shinyFound = {false, "None"}
+local shinyFound = {false, "无"}
 
-local botTargetFishingSpecies = 27  -- Input here the fishing bot target species index. You can find it in the link below
+local botTargetFishingSpecies = 27  -- 在此输入钓鱼机器人目标种类索引。可在下方链接中找到
                                     -- https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_index_number_(Generation_I)
 local fishedSpeciesAddr
 local biteFlagAddr = 0xCD3D
 
 local tidAddr
 local TIDFound = false
-local botTargetTIDs = {0, 1, 1337, 8453, 8411, 11233, 11111, 22222, 33333}  -- Input here the bot target TIDs
+local botTargetTIDs = {0, 1, 1337, 8453, 8411, 11233, 11111, 22222, 33333}  -- 在此输入机器人目标 TID
 
-if versionAddr == 0x414C then  -- Check game version
- version = "Crystal"
+if versionAddr == 0x414C then  -- 检查游戏版本
+ version = "水晶"
 elseif versionAddr == 0x424C then
- version = "Blue"
+ version = "蓝"
 elseif versionAddr == 0x474C then
- version = "Gold"
+ version = "金"
 elseif versionAddr == 0x5245 then
- version = "Red"
+ version = "红"
 elseif versionAddr == 0x4752 then
- version = "Green"
+ version = "绿"
 elseif versionAddr == 0x534C then
- version = "Silver"
+ version = "银"
 elseif versionAddr == 0x5945 then
- version = "Yellow"
+ version = "黄"
 else
- version = "Unknown"
+ version = "未知"
 end
 
-if languageAddr == 0x04 or languageAddr == 0x91 or languageAddr == 0x9D then  -- Check game language and set addresses
+if languageAddr == 0x04 or languageAddr == 0x91 or languageAddr == 0x9D then  -- 检查游戏语言并设置地址
  language = "USA"
 
- if version == "Blue" or version == "Red" then
+ if version == "蓝" or version == "红" then
   partyAddr = 0xD16B
   partySlotsCounterAddr = 0xD163
   wildDVsAddr = 0xCFF1
   fishedSpeciesAddr = 0xD059
   tidAddr = 0xD359
- elseif version == "Yellow" then
+ elseif version == "黄" then
   partyAddr = 0xD16A
   partySlotsCounterAddr = 0xD162
   wildDVsAddr = 0xCFF0
@@ -110,13 +110,13 @@ elseif languageAddr == 0xB8 or languageAddr == 0xD9 or languageAddr == 0xDC or l
 else
  language = "EUR"
 
- if version == "Blue" or version == "Red" then
+ if version == "蓝" or version == "红" then
   partyAddr = 0xD170
   partySlotsCounterAddr = 0xD168
   wildDVsAddr = 0xCFF6
   fishedSpeciesAddr = 0xD05E
   tidAddr = 0xD35E
- elseif version == "Yellow" then
+ elseif version == "黄" then
   partyAddr = 0xD16F
   partySlotsCounterAddr = 0xD167
   wildDVsAddr = 0xCFF5
@@ -125,15 +125,15 @@ else
  end
 end
 
-if version ~= "Blue" and version ~= "Red" and version ~= "Green" and version ~= "Yellow" then
- warning = " - Wrong game version! Use Blue/Red/Green/Yellow instead"
+if version ~= "蓝" and version ~= "红" and version ~= "绿" and version ~= "黄" then
+ warning = " - 游戏版本错误！ 请改用蓝/红/绿/黄"
 else
  warning = ""
 end
 
 console.clear()
-print("Game Version: "..version..warning)
-print("Language: "..language)
+print("游戏版本："..version..warning)
+print("语言："..language)
 print("")
 
 function getScreenDimensions()
@@ -160,7 +160,7 @@ function getInput()
  end
 
  prevKey = key
- gui.text(emuWindow.leftPadding + 1, emuWindow.topPadding, "Mode: "..mode[index])
+ gui.text(emuWindow.leftPadding + 1, emuWindow.topPadding, "模式："..mode[index])
  drawArrowLeft(102, 0, leftArrowColor)
  gui.text((emuWindow.width / 2) + 100, emuWindow.topPadding, "1 - 2")
  drawArrowRight(140, 0, rightArrowColor)
@@ -196,7 +196,7 @@ function isShiny(atkDV, defDV, speDV, spcDV)
 end
 
 function shinyBotLoop(pokemonDVsAddr)
- shinyFound = {false, "None"}
+ shinyFound = {false, "无"}
  botOneTime = false
 
  while not shinyFound[1] do
@@ -204,11 +204,11 @@ function shinyBotLoop(pokemonDVsAddr)
   joypad.set({A = true})
   local frameLimit
 
-  if mode[index] == "Gift Bot" or mode[index] == "Stationary Bot" then
+  if mode[index] == "礼物机器人" or mode[index] == "定点机器人" then
    frameLimit = 35
-  elseif mode[index] == "Fishing Bot"  then
+  elseif mode[index] == "钓鱼机器人"  then
    frameLimit = 55
-  elseif mode[index] == "In-Game Trade Bot" then
+  elseif mode[index] == "游戏内交换机器人" then
    frameLimit = 2560
   end
 
@@ -243,15 +243,15 @@ function showFoundShiny(pokemonDVsAddr)
   local atkDV, defDV, speDV, spcDV = getDVs(pokemonDVsAddr)
   local hpDV = ((atkDV % 2) * 8) + ((defDV % 2) * 4) + ((speDV % 2) * 2) + (spcDV % 2)
 
-  gui.text(emuWindow.leftPadding + 1, emuWindow.height / 2, "Shiny Found!")
-  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 18, string.format("Hp: %d", hpDV))
-  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 36, string.format("Atk: %d", atkDV))
-  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 54, string.format("Def: %d", defDV))
-  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 72, string.format("SpC: %d", spcDV))
-  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 90, string.format("Spe: %d", speDV))
+  gui.text(emuWindow.leftPadding + 1, emuWindow.height / 2, "发现异色！")
+  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 18, string.format("HP：%d", hpDV))
+  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 36, string.format("攻击：%d", atkDV))
+  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 54, string.format("防御：%d", defDV))
+  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 72, string.format("特殊：%d", spcDV))
+  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 90, string.format("速度：%d", speDV))
 
   if not botOneTime then
-   print("Shiny Found!")
+   print("发现异色！")
    client.pause()
    botOneTime = true
   end
@@ -364,11 +364,11 @@ function showFoundTID()
  if TIDFound then
   local TID = read16Bit(tidAddr)
 
-  gui.text(emuWindow.leftPadding + 1, emuWindow.height / 2, "TID Found!")
-  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 18, "TID: "..TID)
+  gui.text(emuWindow.leftPadding + 1, emuWindow.height / 2, "已找到 TID！")
+  gui.text(emuWindow.leftPadding + 1, (emuWindow.height / 2) + 18, "TID："..TID)
 
   if not botOneTime then
-   print("TID Found!")
+   print("已找到 TID！")
    client.pause()
    botOneTime = true
   end
@@ -386,13 +386,13 @@ function TIDBot()
 end
 
 function shinyText(atkDV, defDV, speDV, spcDV)
- return isShiny(atkDV, defDV, speDV, spcDV)[1] and "\tShiny" or ""
+ return isShiny(atkDV, defDV, speDV, spcDV)[1] and "\t异色" or ""
 end
 
 function showPartyPokemonInfo()
  local partySlotsCounter = read8Bit(partySlotsCounterAddr) - 1
 
- gui.text(emuWindow.leftPadding + 1, 36, "Party natures:")
+ gui.text(emuWindow.leftPadding + 1, 36, "同行性格：")
 
  for i = 0, partySlotsCounter do
   local pokemonSpeciesName = speciesNamesList[read8Bit(partyAddr + (i * 0x2C))]
@@ -412,17 +412,17 @@ while warning == "" do
  getScreenDimensions()
  getInput()
 
- if mode[index] == "Gift Bot" or mode[index] == "In-Game Trade Bot" then
+ if mode[index] == "礼物机器人" or mode[index] == "游戏内交换机器人" then
   local partySlotsCounter = read8Bit(partySlotsCounterAddr) - 1
   local lastPartySlotDVsAddr = partyAddr + 0x1B + (partySlotsCounter * 0x2C)
   shinyBot(lastPartySlotDVsAddr)
- elseif mode[index] == "Stationary Bot" then
+ elseif mode[index] == "定点机器人" then
   shinyBot(wildDVsAddr)
- elseif mode[index] == "Fishing Bot" then
+ elseif mode[index] == "钓鱼机器人" then
   fishingBot(wildDVsAddr)
- elseif mode[index] == "TID Bot" then
+ elseif mode[index] == "TID 机器人" then
   TIDBot()
- elseif mode[index] == "Pokemon Info" then
+ elseif mode[index] == "宝可梦信息" then
   showPartyPokemonInfo()
  end
 

@@ -1,9 +1,9 @@
-local targetSeed = 0xD517  -- Write here the target seed
-local targetHour = 0  -- Write here the target hours
-local targetMinute = 9  -- Write here the target minutes
-local targetSecond = 24  -- Write here the target seconds
-local targetSixtiethSecond = 22  -- Write here the target sixtieth seconds
-local savePath = "D:\\Desktop\\mGBA\\battery\\Pokemon - Ruby Version (USA, Europe) (Rev 2).sav"  -- Write here the path of your Ruby/Sapphire save file
+local targetSeed = 0xD517  -- 在此写入目标种子
+local targetHour = 0  -- 在此写入目标小时
+local targetMinute = 9  -- 在此写入目标分钟
+local targetSecond = 24  -- 在此写入目标秒
+local targetSixtiethSecond = 22  -- 在此写入目标六十分之一秒
+local savePath = "D:\\Desktop\\mGBA\\battery\\Pokemon - Ruby Version (USA, Europe) (Rev 2).sav"  -- 在此写入红宝石/蓝宝石存档文件路径
 
 local charMap = {
  " ", "À", "Á", "Â", "Ç", "È", "É", "Ê", "Ë", "Ì", "こ", "Î", "Ï", "Ò", "Ó", "Ô",
@@ -27,17 +27,17 @@ local charMap = {
 local GameInfo, Jirachi, TENANNIV, TrainerInfo, Option, SaveInfo, Checksums
 
 function initializeBuffers()
- GameInfo = console:createBuffer("Game Info")
+ GameInfo = console:createBuffer("游戏信息")
  GameInfo:setSize(100, 100)
- Jirachi = console:createBuffer("Jirachi")
+ Jirachi = console:createBuffer("基拉祈")
  Jirachi:setSize(100, 100)
  TENANNIV = console:createBuffer("10ANNIV / Aura Mew")
  TENANNIV:setSize(100, 100)
- TrainerInfo = console:createBuffer("Trainer Info")
+ TrainerInfo = console:createBuffer("训练家信息")
  TrainerInfo:setSize(100, 100)
- Option = console:createBuffer("Option")
+ Option = console:createBuffer("选项")
  Option:setSize(100, 100)
- SaveInfo = console:createBuffer("Save Info")
+ SaveInfo = console:createBuffer("存档信息")
  SaveInfo:setSize(100, 100)
  --Checksums = console:createBuffer("Checksums")
  --Checksums:setSize(100, 100)
@@ -54,19 +54,19 @@ function setGameVersion()
  local gameVersionCode = emu:read8(0x80000AE)
  local gameRegionCode = emu:read8(0x80000AF)
 
- if gameVersionCode == 0x45 then  -- Check game version
-  gameVersion = "Emerald"
+ if gameVersionCode == 0x45 then  -- 检查游戏版本
+  gameVersion = "绿宝石"
  elseif gameVersionCode == 0x47 then
-  gameVersion = "LeafGreen"
+  gameVersion = "叶绿"
  elseif gameVersionCode == 0x50 then
-  gameVersion = "Sapphire"
+  gameVersion = "蓝宝石"
  elseif gameVersionCode == 0x52 then
-  gameVersion = "FireRed"
+  gameVersion = "火红"
  elseif gameVersionCode == 0x56 then
-  gameVersion = "Ruby"
+  gameVersion = "红宝石"
  end
 
- if gameRegionCode == 0x45 then  -- Check game region and set addresses
+ if gameRegionCode == 0x45 then  -- 检查游戏地区并设置地址
   gameRegion = "USA"
   currentSeedAddr = 0x3004818
  elseif gameRegionCode == 0x4A then
@@ -83,18 +83,18 @@ function printGameInfo()
  wrongGameRegion = true
  GameInfo:clear()
 
- if gameVersion == "" then  -- Print game info
-  GameInfo:print("Version: Unknown game")
- elseif gameVersion ~= "Ruby" and gameVersion ~= "Sapphire" then
-  GameInfo:print(string.format("Version: %s - Wrong game version! Use Ruby/Sapphire instead\n", gameVersion))
+ if gameVersion == "" then  -- 打印游戏信息
+  GameInfo:print("版本：未知游戏")
+ elseif gameVersion ~= "红宝石" and gameVersion ~= "蓝宝石" then
+  GameInfo:print(string.format("版本：%s - 游戏版本错误！请改用红宝石／蓝宝石\n", gameVersion))
  elseif gameRegion == "JPN" then
-  GameInfo:print(string.format("Region: %s - Wrong game region! Use USA/EUR instead\n", gameRegion))
+  GameInfo:print(string.format("地区：%s - 游戏地区错误！ 请改用美版/欧版\n", gameRegion))
  elseif gameRegion == "" then
-  GameInfo:print("Version: "..gameVersion.."\n".."Region: Unknown region\n")
+  GameInfo:print("版本："..gameVersion.."\n".."地区：未知地区\n")
  else
   wrongGameVersion = false
   wrongGameRegion = false
-  GameInfo:print("Version: "..gameVersion.."\n"..string.format("Region: %s\n", gameRegion))
+  GameInfo:print("版本："..gameVersion.."\n"..string.format("地区：%s\n", gameRegion))
  end
 end
 
@@ -117,7 +117,7 @@ function showCurrentTime(buffer)
  local minute = emu:read8(saveBlock2Addr + 0x10)
  local second = emu:read8(saveBlock2Addr + 0x11)
  local sixtiethSecond = emu:read8(saveBlock2Addr + 0x12)
- buffer:print(string.format("Current Time: %02d:%02d:%02d:%02d\n", hour, minute, second, sixtiethSecond))
+ buffer:print(string.format("当前时间：%02d：%02d：%02d：%02d\n", hour, minute, second, sixtiethSecond))
 end
 
 function getChecksumSeed()
@@ -132,11 +132,11 @@ end
 function showTargetInfo(buffer, textSpeedOptionIndex, checksum)
  local targetBaseHour, targetBaseMinute, targetBaseSecond, targetBaseSixtiethSecond = calculateBaseTargetTime(textSpeedOptionIndex)
  buffer:clear()
- buffer:print(string.format("Target Checksum Seed: %04X\n", targetSeed))
- buffer:print(string.format("Target Final Time: %02d:%02d:%02d:%02d\n", targetHour, targetMinute, targetSecond, targetSixtiethSecond))
- buffer:print(string.format("Target Base Save Time: %02d:%02d:%02d:%02d\n\n", targetBaseHour, targetBaseMinute, targetBaseSecond, targetBaseSixtiethSecond))
+ buffer:print(string.format("目标校验和种子：%04X\n", targetSeed))
+ buffer:print(string.format("目标最终时间：%02d：%02d：%02d：%02d\n", targetHour, targetMinute, targetSecond, targetSixtiethSecond))
+ buffer:print(string.format("目标基础存档时间：%02d：%02d：%02d：%02d\n\n", targetBaseHour, targetBaseMinute, targetBaseSecond, targetBaseSixtiethSecond))
  showCurrentTime(buffer)
- buffer:print(string.format("Segment 0 Checksum Seed: %04X\n", checksum))
+ buffer:print(string.format("区段 0 校验和种子：%04X\n", checksum))
 end
 
 function getChecksumsList()
@@ -157,7 +157,7 @@ end
 
 function getCurrentXORChecksumSeed(checksumsList)
  local xorChecksumSeed = 0
- 
+
  for _, checksum in ipairs(checksumsList) do
   xorChecksumSeed = xorChecksumSeed ~ tonumber(checksum, 16)
  end
@@ -177,7 +177,7 @@ function getPlayerNameString(rawString)
  local string = ""
 
  for _, char in ipairs({rawString:byte(1, #rawString)}) do
-  if char == 0xFF then  -- Terminator character check
+  if char == 0xFF then  -- 终止字符检查
    break
   end
 
@@ -189,8 +189,8 @@ end
 
 function showRNGInfo(buffer)
  local currentSeed = emu:read32(currentSeedAddr)
- buffer:print(string.format("Visual Frame: %d\n", emu:currentFrame() - 4))
- buffer:print(string.format("Current Seed: %08X", currentSeed))
+ buffer:print(string.format("画面帧：%d\n", emu:currentFrame() - 4))
+ buffer:print(string.format("当前种子：%08X", currentSeed))
 end
 
 function showTrainerInfo(buffer)
@@ -199,18 +199,18 @@ function showTrainerInfo(buffer)
  local trainerTID, trainerSID = getTrainerIDs()
  local playerName = getPlayerNameString(emu:readRange(saveBlock2Addr, 8))
  buffer:clear()
- buffer:print(string.format("Gender: %s\n", playerGenderSymbols[playerGenderIndex + 1]))
- buffer:print(string.format("TID: %d\nSID: %d\n", trainerTID, trainerSID))
- buffer:print(string.format("Name: %s\n\n", playerName))
+ buffer:print(string.format("性别：%s\n", playerGenderSymbols[playerGenderIndex + 1]))
+ buffer:print(string.format("TID：%d\nSID：%d\n", trainerTID, trainerSID))
+ buffer:print(string.format("名字：%s\n\n", playerName))
  showRNGInfo(buffer)
 end
 
 function showCurrentOptions(buffer, textSpeedOptionIndex)
- local speedTextOptions = {"Slow", "Mid", "Fast"}
- local battleSceneOptions = {"On", "Off"}
- local battleStyleOptions = {"Shift", "Set"}
- local soundOptions = {"Mono", "Stereo"}
- local buttonModeOptions = {"Normal", "LR", "L=A"}
+ local speedTextOptions = {"慢", "中", "快"}
+ local battleSceneOptions = {"开", "关"}
+ local battleStyleOptions = {"Shift", "固定"}
+ local soundOptions = {"单声道", "立体声"}
+ local buttonModeOptions = {"普通", "LR", "L=A"}
  local buttonModeOptionIndex = emu:read8(saveBlock2Addr + 0x13)
  local optionsValue = emu:read32(saveBlock2Addr + 0x14)
  local frameTypeOptionIndex = (optionsValue >> 3) & 0x1F
@@ -218,12 +218,12 @@ function showCurrentOptions(buffer, textSpeedOptionIndex)
  local battleStyleOptionIndex = (optionsValue >> 9) & 0x1
  local battleSceneOptionIndex = (optionsValue >> 10) & 0x1
  buffer:clear()
- buffer:print(string.format("Text Speed: %s\n", speedTextOptions[textSpeedOptionIndex + 1]))
- buffer:print(string.format("Battle Scene: %s\n", battleSceneOptions[battleSceneOptionIndex + 1]))
- buffer:print(string.format("Battle Style: %s\n", battleStyleOptions[battleStyleOptionIndex + 1]))
- buffer:print(string.format("Sound: %s\n", soundOptions[soundOptionIndex + 1]))
- buffer:print(string.format("Button Mode: %s\n", buttonModeOptions[buttonModeOptionIndex + 1]))
- buffer:print(string.format("Frame Style: %d", frameTypeOptionIndex + 1))
+ buffer:print(string.format("文字速度：%s\n", speedTextOptions[textSpeedOptionIndex + 1]))
+ buffer:print(string.format("战斗动画：%s\n", battleSceneOptions[battleSceneOptionIndex + 1]))
+ buffer:print(string.format("战斗风格：%s\n", battleStyleOptions[battleStyleOptionIndex + 1]))
+ buffer:print(string.format("声音：%s\n", soundOptions[soundOptionIndex + 1]))
+ buffer:print(string.format("按键模式：%s\n", buttonModeOptions[buttonModeOptionIndex + 1]))
+ buffer:print(string.format("边框样式：%d", frameTypeOptionIndex + 1))
 end
 
 function getCurrentTextSpeedOptionIndex()
@@ -241,16 +241,16 @@ function pokemonSeenFlag(speciesDexNumber)
 end
 
 function showSaveInfo(buffer)
- local starterPokemonNames = {"Treecko", "Torchic", "Mudkip"}
+ local starterPokemonNames = {"木守宫", "火稚鸡", "水跃鱼"}
  local currentClockHour = emu:read8(saveBlock2Addr + 0xA2)
  local currentClockMinute = emu:read8(saveBlock2Addr + 0xA3)
  local starterPokemonIndex = emu:read8(starterPokemonIndexAddr)
  buffer:clear()
- buffer:print(string.format("Clock: %02d:%02d (%s:%s)\n", currentClockHour, currentClockMinute, currentClockHour ~= 0 and "XX" or "00", currentClockMinute ~= 0 and "XX" or "00"))
- buffer:print(string.format("Starter: %s\n", starterPokemonNames[starterPokemonIndex + 1]))
- buffer:print(string.format("Zigzagoon seen? %s\n", pokemonSeenFlag(263) == true and "Yes" or "No"))
- buffer:print(string.format("Wurmple seen? %s\n", pokemonSeenFlag(265) == true and "Yes" or "No"))
- buffer:print(string.format("Wingull seen? %s\n", pokemonSeenFlag(278) == true and "Yes" or "No"))
+ buffer:print(string.format("时钟：%02d：%02d (%s：%s)\n", currentClockHour, currentClockMinute, currentClockHour ~= 0 and "XX" or "00", currentClockMinute ~= 0 and "XX" or "00"))
+ buffer:print(string.format("最初的伙伴：%s\n", starterPokemonNames[starterPokemonIndex + 1]))
+ buffer:print(string.format("Zigzagoon seen? %s\n", pokemonSeenFlag(263) == true and "是" or "否"))
+ buffer:print(string.format("Wurmple seen? %s\n", pokemonSeenFlag(265) == true and "是" or "否"))
+ buffer:print(string.format("Wingull seen? %s\n", pokemonSeenFlag(278) == true and "是" or "否"))
  showCurrentTime(buffer)
 end
 
@@ -271,8 +271,8 @@ function updateTENANNIVBuffer(buffer, textSpeedIndex, checksumSeed)
  local checksums = getChecksumsList()
  local currectXORChecksumSeed = getCurrentXORChecksumSeed(checksums)
  local segment0TargetSeed = currectXORChecksumSeed ~ checksumSeed ~ targetSeed
- buffer:print(string.format("Current Checksum Seed: %04X\n\n", currectXORChecksumSeed))
- buffer:print(string.format("Target Segment 0 Checksum Seed: %04X", segment0TargetSeed))
+ buffer:print(string.format("当前校验和种子：%04X\n\n", currectXORChecksumSeed))
+ buffer:print(string.format("目标区段 0 校验和种子：%04X", segment0TargetSeed))
 end
 
 function updateTrainerInfoBuffer(buffer)

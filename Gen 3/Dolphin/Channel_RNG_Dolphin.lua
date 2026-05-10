@@ -12,17 +12,17 @@ local JUMP_DATA = {
  {0x40000001, 0x90000000}, {0x80000001, 0x20000000}, {0x1, 0x40000000}, {0x1, 0x80000000}}
 
 local natureNamesList = {
- "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
- "Bold", "Docile", "Relaxed", "Impish", "Lax",
- "Timid", "Hasty", "Serious", "Jolly", "Naive",
- "Modest", "Mild", "Quiet", "Bashful", "Rash",
- "Calm", "Gentle", "Sassy", "Careful", "Quirky"}
+ "勤奋", "怕寂寞", "勇敢", "固执", "顽皮",
+ "大胆", "坦率", "悠闲", "淘气", "乐天",
+ "胆小", "急躁", "认真", "爽朗", "天真",
+ "内敛", "慢吞吞", "冷静", "害羞", "马虎",
+ "温和", "温顺", "自大", "慎重", "浮躁"}
 
 local HPTypeNamesList = {
- "Fighting", "Flying", "Poison", "Ground",
- "Rock", "Bug", "Ghost", "Steel",
- "Fire", "Water", "Grass", "Electric",
- "Psychic", "Ice", "Dragon", "Dark"}
+ "格斗", "飞行", "毒", "地面",
+ "岩石", "虫", "幽灵", "钢",
+ "火", "水", "草", "电",
+ "超能力", "冰", "龙", "恶"}
 
 function LCRNG(s, mul, sum)
  local a = (mul >> 16) * (s % 0x10000) + (s >> 16) * (mul % 0x10000)
@@ -61,7 +61,7 @@ end
 
 function getIVs(seed)
  local ivs = {0, 0, 0, 0, 0, 0}
- seed = LCRNG(seed, 0x45C82BE5, 0xD2F65B55)  -- 3 cycle
+ seed = LCRNG(seed, 0x45C82BE5, 0xD2F65B55)  -- 3 个周期
 
  for i = 1, 6 do
   seed = LCRNG(seed, 0x343FD, 0x269EC3)
@@ -75,7 +75,7 @@ function shinyCheck(highPID, lowPID, trainerID, trainerSID)
  local shinyTypeValue = trainerID ~ trainerSID ~ highPID ~ lowPID
 
  if shinyTypeValue < 8 then
-  return shinyTypeValue == 0 and " (Square Shiny)" or " (Star Shiny)"
+  return shinyTypeValue == 0 and "（方块异色）" or "（星星异色）"
  end
 
  return ""
@@ -87,7 +87,7 @@ function getHPTypeAndPower(hpIV, atkIV, defIV, spAtkIV, spDefIV, spdIV)
  local hpPower = (((((hpIV >> 1) & 1) + (2 * ((atkIV >> 1) & 1)) + (4 * ((defIV >> 1) & 1)) + (8 * ((spdIV >> 1) & 1))
                  + (16 * ((spAtkIV >> 1) & 1)) + (32 * ((spDefIV >> 1) & 1))) * 40) // 63) + 30
 
- return string.format("HPower: %s %02d", HPTypeNamesList[hpType + 1], hpPower)
+ return string.format("觉醒力量：%s %02d", HPTypeNamesList[hpType + 1], hpPower)
 end
 
 function getJirachiInfo(seed)
@@ -107,7 +107,7 @@ function getJirachiInfo(seed)
  local pokemonPID = (pokemonHighPID << 16) + pokemonLowPID
  local shinyType = shinyCheck(pokemonHighPID, pokemonLowPID, OTID, OTSID)
  local natureIndex = pokemonPID % 25
- local info = string.format("PID: %08X %s\nNature: %s\nIVs: %s", pokemonPID, shinyType, natureNamesList[natureIndex + 1], table.concat(ivs, "/"))
+ local info = string.format("PID：%08X %s\n性格：%s\n个体值：%s", pokemonPID, shinyType, natureNamesList[natureIndex + 1], table.concat(ivs, "/"))
  local hpTypeAndPower = getHPTypeAndPower(ivs[1], ivs[2], ivs[3], ivs[4], ivs[5], ivs[6])
  info = info.."\n"..hpTypeAndPower
 
@@ -122,7 +122,7 @@ function onScriptStart()
  if gameLang == 0x45 then  -- U
   currentSeedAddr = 0x3502C8
  elseif gameLang == 0x4A then  -- J
-  currentSeedAddr = read8Bit(0x0) == 0x47 and 0x387C18 or 0x387C38  -- Japan has two editions of the game
+  currentSeedAddr = read8Bit(0x0) == 0x47 and 0x387C18 or 0x387C38  -- 日本有两个游戏版本
  elseif gameLang == 0x50 then  -- E
   currentSeedAddr = 0x33D888
  else  -- A
@@ -138,7 +138,7 @@ function onScriptUpdate()
  local currentSeed = read32Bit(currentSeedAddr)
  advances = advances + LCRNGDistance(tempCurrentSeed, currentSeed)
  local jirachiInfo = getJirachiInfo(currentSeed)
- local text = string.format("Initial Seed: %08X\nCurrent Seed: %08X\nAdvances: %d\n\nJirachi Info:\n%s",
+ local text = string.format("初始种子：%08X\n当前种子：%08X\n推进数：%d\n\n基拉祈信息：\n%s",
                             initialSeed, currentSeed, advances, jirachiInfo)
  SetScreenText(text)
 end

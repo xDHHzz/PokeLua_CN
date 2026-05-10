@@ -19,95 +19,95 @@ local JUMP_DATA = {
  {0x40000001, 0x10000000}, {0x80000001, 0x20000000}, {0x1, 0x40000000}, {0x1, 0x80000000}}
 
 local natureNamesList = {
- "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
- "Bold", "Docile", "Relaxed", "Impish", "Lax",
- "Timid", "Hasty", "Serious", "Jolly", "Naive",
- "Modest", "Mild", "Quiet", "Bashful", "Rash",
- "Calm", "Gentle", "Sassy", "Careful", "Quirky"}
+ "勤奋", "怕寂寞", "勇敢", "固执", "顽皮",
+ "大胆", "坦率", "悠闲", "淘气", "乐天",
+ "胆小", "急躁", "认真", "爽朗", "天真",
+ "内敛", "慢吞吞", "冷静", "害羞", "马虎",
+ "温和", "温顺", "自大", "慎重", "浮躁"}
 
 local HPTypeNamesList = {
- "Fighting", "Flying", "Poison", "Ground",
- "Rock", "Bug", "Ghost", "Steel",
- "Fire", "Water", "Grass", "Electric",
- "Psychic", "Ice", "Dragon", "Dark"}
+ "格斗", "飞行", "毒", "地面",
+ "岩石", "虫", "幽灵", "钢",
+ "火", "水", "草", "电",
+ "超能力", "冰", "龙", "恶"}
 
 local speciesNamesList = {
- -- Gen 1
- "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise",
- "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata",
- "Raticate", "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀",
- "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable", "Vulpix", "Ninetales",
- "Jigglypuff", "Wigglytuff", "Zubat", "Golbat", "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat",
- "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck", "Golduck", "Mankey", "Primeape", "Growlithe",
- "Arcanine", "Poliwag", "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop", "Machoke", "Machamp",
- "Bellsprout", "Weepinbell", "Victreebel", "Tentacool", "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta",
- "Rapidash", "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo", "Dodrio", "Seel", "Dewgong",
- "Grimer", "Muk", "Shellder", "Cloyster", "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby",
- "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone", "Marowak", "Hitmonlee", "Hitmonchan",
- "Lickitung", "Koffing", "Weezing", "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Seadra",
- "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime", "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir",
- "Tauros", "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon", "Jolteon", "Flareon", "Porygon",
- "Omanyte", "Omastar", "Kabuto", "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres", "Dratini",
- "Dragonair", "Dragonite", "Mewtwo", "Mew",
- -- Gen 2
- "Chikorita", "Bayleef", "Meganium", "Cyndaquil", "Quilava", "Typhlosion", "Totodile", "Croconaw", "Feraligatr",
- "Sentret", "Furret", "Hoothoot", "Noctowl", "Ledyba", "Ledian", "Spinarak", "Ariados", "Crobat", "Chinchou",
- "Lanturn", "Pichu", "Cleffa", "Igglybuff", "Togepi", "Togetic", "Natu", "Xatu", "Mareep", "Flaaffy", "Ampharos",
- "Bellossom", "Marill", "Azumarill", "Sudowoodo", "Politoed", "Hoppip", "Skiploom", "Jumpluff", "Aipom", "Sunkern",
- "Sunflora", "Yanma", "Wooper", "Quagsire", "Espeon", "Umbreon", "Murkrow", "Slowking", "Misdreavus", "Unown",
- "Wobbuffet", "Girafarig", "Pineco", "Forretress", "Dunsparce", "Gligar", "Steelix", "Snubbull", "Granbull",
- "Qwilfish", "Scizor", "Shuckle", "Heracross", "Sneasel", "Teddiursa", "Ursaring", "Slugma", "Magcargo", "Swinub",
- "Piloswine", "Corsola", "Remoraid", "Octillery", "Delibird", "Mantine", "Skarmory", "Houndour", "Houndoom",
- "Kingdra", "Phanpy", "Donphan", "Porygon2", "Stantler", "Smeargle", "Tyrogue", "Hitmontop", "Smoochum", "Elekid",
- "Magby", "Miltank", "Blissey", "Raikou", "Entei", "Suicune", "Larvitar", "Pupitar", "Tyranitar", "Lugia", "Ho-Oh",
- "Celebi",
- -- Gen 3
- "Treecko", "Grovyle", "Sceptile", "Torchic", "Combusken", "Blaziken", "Mudkip", "Marshtomp", "Swampert",
- "Poochyena", "Mightyena", "Zigzagoon", "Linoone", "Wurmple", "Silcoon", "Beautifly", "Cascoon", "Dustox", "Lotad",
- "Lombre", "Ludicolo", "Seedot", "Nuzleaf", "Shiftry", "Taillow", "Swellow", "Wingull", "Pelipper", "Ralts",
- "Kirlia", "Gardevoir", "Surskit", "Masquerain", "Shroomish", "Breloom", "Slakoth", "Vigoroth", "Slaking",
- "Nincada", "Ninjask", "Shedinja", "Whismur", "Loudred", "Exploud", "Makuhita", "Hariyama", "Azurill", "Nosepass",
- "Skitty", "Delcatty", "Sableye", "Mawile", "Aron", "Lairon", "Aggron", "Meditite", "Medicham", "Electrike",
- "Manectric", "Plusle", "Minun", "Volbeat", "Illumise", "Roselia", "Gulpin", "Swalot", "Carvanha", "Sharpedo",
- "Wailmer", "Wailord", "Numel", "Camerupt", "Torkoal", "Spoink", "Grumpig", "Spinda", "Trapinch", "Vibrava",
- "Flygon", "Cacnea", "Cacturne", "Swablu", "Altaria", "Zangoose", "Seviper", "Lunatone", "Solrock", "Barboach",
- "Whiscash", "Corphish", "Crawdaunt", "Baltoy", "Claydol", "Lileep", "Cradily", "Anorith", "Armaldo", "Feebas",
- "Milotic", "Castform", "Kecleon", "Shuppet", "Banette", "Duskull", "Dusclops", "Tropius", "Chimecho", "Absol",
- "Wynaut", "Snorunt", "Glalie", "Spheal", "Sealeo", "Walrein", "Clamperl", "Huntail", "Gorebyss", "Relicanth",
- "Luvdisc", "Bagon", "Shelgon", "Salamence", "Beldum", "Metang", "Metagross", "Regirock", "Regice", "Registeel",
- "Latias", "Latios",  "Kyogre", "Groudon", "Rayquaza", "Jirachi", "Deoxys",
- -- Gen 4
- "Turtwig", "Grotle", "Torterra", "Chimchar", "Monferno", "Infernape", "Piplup", "Prinplup", "Empoleon", "Starly",
- "Staravia", "Staraptor", "Bidoof", "Bibarel", "Kricketot", "Kricketune", "Shinx", "Luxio", "Luxray", "Budew",
- "Roserade", "Cranidos", "Rampardos", "Shieldon", "Bastiodon", "Burmy", "Wormadam", "Mothim", "Combee", "Vespiquen",
- "Pachirisu", "Buizel", "Floatzel", "Cherubi", "Cherrim", "Shellos", "Gastrodon", "Ambipom", "Drifloon", "Drifblim",
- "Buneary", "Lopunny", "Mismagius", "Honchkrow", "Glameow", "Purugly", "Chingling", "Stunky", "Skuntank", "Bronzor",
- "Bronzong", "Bonsly", "Mime Jr.", "Happiny", "Chatot", "Spiritomb", "Gible", "Gabite", "Garchomp", "Munchlax",
- "Riolu", "Lucario", "Hippopotas", "Hippowdon", "Skorupi", "Drapion", "Croagunk", "Toxicroak", "Carnivine", "Finneon",
- "Lumineon", "Mantyke", "Snover", "Abomasnow", "Weavile", "Magnezone", "Lickilicky", "Rhyperior", "Tangrowth",
- "Electivire", "Magmortar", "Togekiss", "Yanmega", "Leafeon", "Glaceon", "Gliscor", "Mamoswine", "Porygon-Z",
- "Gallade", "Probopass", "Dusknoir", "Froslass", "Rotom", "Uxie", "Mesprit", "Azelf", "Dialga", "Palkia", "Heatran",
- "Regigigas", "Giratina", "Cresselia", "Phione", "Manaphy", "Darkrai", "Shaymin", "Arceus"}
+ -- 第一世代
+ "妙蛙种子", "妙蛙草", "妙蛙花", "小火龙", "火恐龙", "喷火龙", "杰尼龟", "卡咪龟", "水箭龟",
+ "绿毛虫", "铁甲蛹", "巴大蝶", "独角虫", "铁壳蛹", "大针蜂", "波波", "比比鸟", "大比鸟", "小拉达",
+ "拉达", "烈雀", "大嘴雀", "阿柏蛇", "阿柏怪", "皮卡丘", "雷丘", "穿山鼠", "穿山王", "尼多兰",
+ "尼多娜", "尼多后", "尼多朗", "尼多力诺", "尼多王", "皮皮", "皮可西", "六尾", "九尾",
+ "胖丁", "胖可丁", "超音蝠", "大嘴蝠", "走路草", "臭臭花", "霸王花", "派拉斯", "派拉斯特", "毛球",
+ "摩鲁蛾", "地鼠", "三地鼠", "喵喵", "猫老大", "可达鸭", "哥达鸭", "猴怪", "火暴猴", "卡蒂狗",
+ "风速狗", "蚊香蝌蚪", "蚊香君", "蚊香泳士", "凯西", "勇基拉", "胡地", "腕力", "豪力", "怪力",
+ "喇叭芽", "口呆花", "大食花", "玛瑙水母", "毒刺水母", "小拳石", "隆隆石", "隆隆岩", "小火马",
+ "烈焰马", "呆呆兽", "呆壳兽", "小磁怪", "三合一磁怪", "大葱鸭", "嘟嘟", "嘟嘟利", "小海狮", "白海狮",
+ "臭泥", "臭臭泥", "大舌贝", "刺甲贝", "鬼斯", "鬼斯通", "耿鬼", "大岩蛇", "催眠貘", "引梦貘人", "大钳蟹",
+ "巨钳蟹", "霹雳电球", "顽皮雷弹", "蛋蛋", "椰蛋树", "卡拉卡拉", "嘎啦嘎啦", "飞腿郎", "快拳郎",
+ "大舌头", "瓦斯弹", "双弹瓦斯", "独角犀牛", "钻角犀兽", "吉利蛋", "蔓藤怪", "袋兽", "墨海马", "海刺龙",
+ "角金鱼", "金鱼王", "海星星", "宝石海星", "魔墙人偶", "飞天螳螂", "迷唇姐", "电击兽", "鸭嘴火兽", "凯罗斯",
+ "肯泰罗", "鲤鱼王", "暴鲤龙", "拉普拉斯", "百变怪", "伊布", "水伊布", "雷伊布", "火伊布", "多边兽",
+ "菊石兽", "多刺菊石兽", "化石盔", "镰刀盔", "化石翼龙", "卡比兽", "急冻鸟", "闪电鸟", "火焰鸟", "迷你龙",
+ "哈克龙", "快龙", "超梦", "梦幻",
+ -- 第二世代
+ "菊草叶", "月桂叶", "大竺葵", "火球鼠", "火岩鼠", "火暴兽", "小锯鳄", "蓝鳄", "大力鳄",
+ "尾立", "大尾立", "咕咕", "猫头夜鹰", "芭瓢虫", "安瓢虫", "圆丝蛛", "阿利多斯", "叉字蝠", "灯笼鱼",
+ "电灯怪", "皮丘", "皮宝宝", "宝宝丁", "波克比", "波克基古", "天然雀", "天然鸟", "咩利羊", "茸茸羊", "电龙",
+ "美丽花", "玛力露", "玛力露丽", "树才怪", "蚊香蛙皇", "毽子草", "毽子花", "毽子棉", "长尾怪手", "向日种子",
+ "向日花怪", "蜻蜻蜓", "乌波", "沼王", "太阳伊布", "月亮伊布", "黑暗鸦", "呆呆王", "梦妖", "未知图腾",
+ "果然翁", "麒麟奇", "榛果球", "佛烈托斯", "土龙弟弟", "天蝎", "大钢蛇", "布鲁", "布鲁皇",
+ "千针鱼", "巨钳螳螂", "壶壶", "赫拉克罗斯", "狃拉", "熊宝宝", "圈圈熊", "熔岩虫", "熔岩蜗牛", "小山猪",
+ "长毛猪", "太阳珊瑚", "铁炮鱼", "章鱼桶", "信使鸟", "巨翅飞鱼", "盔甲鸟", "戴鲁比", "黑鲁加",
+ "刺龙王", "小小象", "顿甲", "多边兽Ⅱ", "惊角鹿", "图图犬", "无畏小子", "战舞郎", "迷唇娃", "电击怪",
+ "鸭嘴宝宝", "大奶罐", "幸福蛋", "雷公", "炎帝", "水君", "幼基拉斯", "沙基拉斯", "班基拉斯", "洛奇亚", "凤王",
+ "时拉比",
+ -- 第三世代
+ "木守宫", "森林蜥蜴", "蜥蜴王", "火稚鸡", "力壮鸡", "火焰鸡", "水跃鱼", "沼跃鱼", "巨沼怪",
+ "土狼犬", "大狼犬", "蛇纹熊", "直冲熊", "刺尾虫", "甲壳茧", "狩猎凤蝶", "盾甲茧", "毒粉蛾", "莲叶童子",
+ "莲帽小童", "乐天河童", "橡实果", "长鼻叶", "狡猾天狗", "傲骨燕", "大王燕", "长翅鸥", "大嘴鸥", "拉鲁拉丝",
+ "奇鲁莉安", "沙奈朵", "溜溜糖球", "雨翅蛾", "蘑蘑菇", "斗笠菇", "懒人獭", "过动猿", "请假王",
+ "土居忍士", "铁面忍者", "脱壳忍者", "咕妞妞", "吼爆弹", "爆音怪", "幕下力士", "铁掌力士", "露力丽", "朝北鼻",
+ "向尾喵", "优雅猫", "勾魂眼", "大嘴娃", "可可多拉", "可多拉", "波士可多拉", "玛沙那", "恰雷姆", "落雷兽",
+ "雷电兽", "正电拍拍", "负电拍拍", "电萤虫", "甜甜萤", "毒蔷薇", "溶食兽", "吞食兽", "利牙鱼", "巨牙鲨",
+ "吼吼鲸", "吼鲸王", "呆火驼", "喷火驼", "煤炭龟", "跳跳猪", "噗噗猪", "晃晃斑", "大颚蚁", "超音波幼虫",
+ "沙漠蜻蜓", "刺球仙人掌", "梦歌仙人掌", "青绵鸟", "七夕青鸟", "猫鼬斩", "饭匙蛇", "月石", "太阳岩", "泥泥鳅",
+ "鲶鱼王", "龙虾小兵", "铁螯龙虾", "天秤偶", "念力土偶", "触手百合", "摇篮百合", "太古羽虫", "太古盔甲", "丑丑鱼",
+ "美纳斯", "飘浮泡泡", "变隐龙", "怨影娃娃", "诅咒娃娃", "夜巡灵", "彷徨夜灵", "热带龙", "风铃铃", "阿勃梭鲁",
+ "小果然", "雪童子", "冰鬼护", "海豹球", "海魔狮", "帝牙海狮", "珍珠贝", "猎斑鱼", "樱花鱼", "古空棘鱼",
+ "爱心鱼", "宝贝龙", "甲壳龙", "暴飞龙", "铁哑铃", "金属怪", "巨金怪", "雷吉洛克", "雷吉艾斯", "雷吉斯奇鲁",
+ "拉帝亚斯", "拉帝欧斯",  "盖欧卡", "固拉多", "烈空坐", "基拉祈", "代欧奇希斯",
+ -- 第四世代
+ "草苗龟", "树林龟", "土台龟", "小火焰猴", "猛火猴", "烈焰猴", "波加曼", "波皇子", "帝王拿波", "姆克儿",
+ "姆克鸟", "姆克鹰", "大牙狸", "大尾狸", "圆法师", "音箱蟀", "小猫怪", "勒克猫", "伦琴猫", "含羞苞",
+ "罗丝雷朵", "头盖龙", "战槌龙", "盾甲龙", "护城龙", "结草儿", "结草贵妇", "绅士蛾", "三蜜蜂", "蜂女王",
+ "帕奇利兹", "泳圈鼬", "浮潜鼬", "樱花宝", "樱花儿", "无壳海兔", "海兔兽", "双尾怪手", "飘飘球", "随风球",
+ "卷卷耳", "长耳兔", "梦妖魔", "乌鸦头头", "魅力喵", "东施喵", "铃铛响", "臭鼬噗", "坦克臭鼬", "铜镜怪",
+ "青铜钟", "盆才怪", "魔尼尼", "小福蛋", "聒噪鸟", "花岩怪", "圆陆鲨", "尖牙陆鲨", "烈咬陆鲨", "小卡比兽",
+ "利欧路", "路卡利欧", "沙河马", "河马兽", "钳尾蝎", "龙王蝎", "不良蛙", "毒骷蛙", "尖牙笼", "荧光鱼",
+ "霓虹鱼", "小球飞鱼", "雪笠怪", "暴雪王", "玛狃拉", "自爆磁怪", "大舌舔", "超甲狂犀", "巨蔓藤",
+ "电击魔兽", "鸭嘴炎兽", "波克基斯", "远古巨蜓", "叶伊布", "冰伊布", "天蝎王", "象牙猪", "多边兽Ｚ",
+ "艾路雷朵", "大朝北鼻", "黑夜魔灵", "雪妖女", "洛托姆", "由克希", "艾姆利多", "亚克诺姆", "帝牙卢卡", "帕路奇亚", "席多蓝恩",
+ "雷吉奇卡斯", "骑拉帝纳", "克雷色利亚", "霏欧纳", "玛纳霏", "达克莱伊", "谢米", "阿尔宙斯"}
 
 local abilityNamesList = {
- -- Gen 3
- "Stench", "Drizzle", "Speed Boost", "Battle Armor", "Sturdy", "Damp", "Limber", "Sand Veil", "Static",
- "Volt Absorb", "Water Absorb", "Oblivious", "Cloud Nine", "Compound Eyes", "Insomnia", "Color Change", "Immunity",
- "Flash Fire", "Shield Dust", "Own Tempo", "Suction Cups", "Intimidate", "Shadow Tag", "Rough Skin", "Wonder Guard",
- "Levitate", "Effect Spore", "Synchronize", "Clear Body", "Natural Cure", "Lightning Rod", "Serene Grace",
- "Swift Swim", "Chlorophyll", "Illuminate", "Trace", "Huge Power", "Poison Point", "Inner Focus", "Magma Armor",
- "Water Veil", "Magnet Pull", "Soundproof", "Rain Dish", "Sand Stream", "Pressure", "Thick Fat", "Early Bird",
- "Flame Body", "Run Away", "Keen Eye", "Hyper Cutter", "Pickup", "Truant", "Hustle", "Cute Charm", "Plus", "Minus",
- "Forecast", "Sticky Hold", "Shed Skin", "Guts", "Marvel Scale", "Liquid Ooze", "Overgrow", "Blaze", "Torrent",
- "Swarm", "Rock Head", "Drought", "Arena Trap", "Vital Spirit", "White Smoke", "Pure Power", "Shell Armor",
- "Air Lock",
- -- Gen 4
- "Tangled Feet", "Motor Drive", "Rivalry", "Steadfast", "Snow Cloak", "Gluttony", "Anger Point", "Unburden",
- "Heatproof", "Simple", "Dry Skin", "Download", "Iron Fist", "Poison Heal", "Adaptability", "Skill Link", "Hydration",
- "Solar Power", "Quick Feet", "Normalize", "Sniper", "Magic Guard", "No Guard", "Stall", "Technician", "Leaf Guard",
- "Klutz", "Mold Breaker", "Super Luck", "Aftermath", "Anticipation", "Forewarn", "Unaware", "Tinted Lens", "Filter",
- "Slow Start", "Scrappy", "Storm Drain", "Ice Body", "Solid Rock", "Snow Warning", "Honey Gather", "Frisk", "Reckless",
- "Multitype", "Flower Gift", "Bad Dreams"}
+ -- 第三世代
+ "恶臭", "降雨", "加速", "战斗盔甲", "结实", "湿气", "柔软", "沙隐", "静电",
+ "蓄电", "储水", "迟钝", "无关天气", "复眼", "不眠", "变色", "免疫",
+ "引火", "鳞粉", "我行我素", "吸盘", "威吓", "踩影", "粗糙皮肤", "神奇守护",
+ "飘浮", "孢子", "同步", "恒净之躯", "自然回复", "避雷针", "天恩",
+ "悠游自如", "叶绿素", "发光", "复制", "大力士", "毒刺", "精神力", "熔岩铠甲",
+ "水幕", "磁力", "隔音", "雨盘", "扬沙", "压迫感", "厚脂肪", "早起",
+ "火焰之躯", "逃跑", "锐利目光", "怪力钳", "捡拾", "懒惰", "活力", "迷人之躯", "正电", "负电",
+ "阴晴不定", "黏着", "蜕皮", "毅力", "神奇鳞片", "污泥浆", "茂盛", "猛火", "激流",
+ "虫之预感", "坚硬脑袋", "日照", "沙穴", "干劲", "白色烟雾", "瑜伽之力", "硬壳盔甲",
+ "气闸",
+ -- 第四世代
+ "蹒跚", "电气引擎", "斗争心", "不屈之心", "雪隐", "贪吃鬼", "愤怒穴位", "轻装",
+ "耐热", "单纯", "干燥皮肤", "下载", "铁拳", "毒疗", "适应力", "连续攻击", "湿润之躯",
+ "太阳之力", "飞毛腿", "一般皮肤", "狙击手", "魔法防守", "无防守", "慢出", "技术高手", "叶子防守",
+ "笨拙", "破格", "超幸运", "引爆", "危险预知", "预知梦", "纯朴", "有色眼镜", "过滤",
+ "慢启动", "胆量", "引水", "冰冻之躯", "坚硬岩石", "降雪", "采蜜", "察觉", "舍身",
+ "多属性", "花之礼", "梦魇"}
 
 local pokemonAbilities = {
  [1] = {65}, [2] = {65}, [3] = {65}, [4] = {66}, [5] = {66}, [6] = {66}, [7] = {67}, [8] = {67},
@@ -171,239 +171,239 @@ local pokemonAbilities = {
  [493] = {121}}
 
 local moveNamesList = {
- -- Gen 1
- "--", "Pound", "Karate Chop", "Double Slap", "Comet Punch", "Mega Punch", "Pay Day", "Fire Punch", "Ice Punch",
- "Thunder Punch", "Scratch", "Vice Grip", "Guillotine", "Razor Wind", "Swords Dance", "Cut", "Gust", "Wing Attack",
- "Whirlwind", "Fly", "Bind", "Slam", "Vine Whip", "Stomp", "Double Kick", "Mega Kick", "Jump Kick", "Rolling Kick",
- "Sand Attack", "Headbutt", "Horn Attack", "Fury Attack", "Horn Drill", "Tackle", "Body Slam", "Wrap", "Take Down",
- "Thrash", "Double-Edge", "Tail Whip", "Poison Sting", "Twineedle", "Pin Missile", "Leer", "Bite", "Growl", "Roar",
- "Sing", "Supersonic", "Sonic Boom", "Disable", "Acid", "Ember", "Flamethrower", "Mist", "Water Gun", "Hydro Pump",
- "Surf", "Ice Beam", "Blizzard", "Psybeam", "Bubble Beam", "Aurora Beam", "Hyper Beam", "Peck", "Drill Peck",
- "Submission", "Low Kick", "Counter", "Seismic Toss", "Strength", "Absorb", "Mega Drain", "Leech Seed", "Growth",
- "Razor Leaf", "Solar Beam", "Poison Powder", "Stun Spore", "Sleep Powder", "Petal Dance", "String Shot",
- "Dragon Rage", "Fire Spin", "Thunder Shock", "Thunderbolt", "Thunder Wave", "Thunder", "Rock Throw", "Earthquake",
- "Fissure", "Dig", "Toxic", "Confusion", "Psychic", "Hypnosis", "Meditate", "Agility", "Quick Attack", "Rage",
- "Teleport", "Night Shade", "Mimic", "Screech", "Double Team", "Recover", "Harden", "Minimize", "Smokescreen",
- "Confuse Ray", "Withdraw", "Defense Curl", "Barrier", "Light Screen", "Haze", "Reflect", "Focus Energy", "Bide",
- "Metronome", "Mirror Move", "Self-Destruct", "Egg Bomb", "Lick", "Smog", "Sludge", "Bone Club", "Fire Blast",
- "Waterfall", "Clamp", "Swift", "Skull Bash", "Spike Cannon", "Constrict", "Amnesia", "Kinesis", "Soft-Boiled",
- "High Jump Kick", "Glare", "Dream Eater", "Poison Gas", "Barrage", "Leech Life", "Lovely Kiss", "Sky Attack",
- "Transform", "Bubble", "Dizzy Punch", "Spore", "Flash", "Psywave", "Splash", "Acid Armor", "Crabhammer",
- "Explosion", "Fury Swipes", "Bonemerang", "Rest", "Rock Slide", "Hyper Fang", "Sharpen", "Conversion", "Tri Attack",
- "Super Fang", "Slash", "Substitute", "Struggle",
- -- Gen 2
- "Sketch", "Triple Kick", "Thief", "Spider Web", "Mind Reader",
- "Nightmare", "Flame Wheel", "Snore", "Curse", "Flail", "Conversion 2", "Aeroblast", "Cotton Spore", "Reversal",
- "Spite", "Powder Snow", "Protect", "Mach Punch", "Scary Face", "Feint Attack", "Sweet Kiss", "Belly Drum",
- "Sludge Bomb", "Mud-Slap", "Octazooka", "Spikes", "Zap Cannon", "Foresight", "Destiny Bond", "Perish Song",
- "Icy Wind", "Detect", "Bone Rush", "Lock-On", "Outrage", "Sandstorm", "Giga Drain", "Endure", "Charm", "Rollout",
- "False Swipe", "Swagger", "Milk Drink", "Spark", "Fury Cutter", "Steel Wing", "Mean Look", "Attract", "Sleep Talk",
- "Heal Bell", "Return", "Present", "Frustration", "Safeguard", "Pain Split", "Sacred Fire", "Magnitude",
- "Dynamic Punch", "Megahorn", "Dragon Breath", "Baton Pass", "Encore", "Pursuit", "Rapid Spin", "Sweet Scent",
- "Iron Tail", "Metal Claw", "Vital Throw", "Morning Sun", "Synthesis", "Moonlight", "Hidden Power", "Cross Chop",
- "Twister", "Rain Dance", "Sunny Day", "Crunch", "Mirror Coat", "Psych Up", "Extreme Speed", "Ancient Power",
- "Shadow Ball", "Future Sight", "Rock Smash", "Whirlpool", "Beat Up",
- -- Gen 3
- "Fake Out", "Uproar", "Stockpile", "Spit Up", "Swallow", "Heat Wave", "Hail", "Torment", "Flatter", "Will-O-Wisp",
- "Memento", "Facade", "Focus Punch", "Smelling Salts", "Follow Me", "Nature Power", "Charge", "Taunt", "Helping Hand",
- "Trick", "Role Play", "Wish", "Assist", "Ingrain", "Superpower", "Magic Coat", "Recycle", "Revenge", "Brick Break",
- "Yawn", "Knock Off", "Endeavor", "Eruption", "Skill Swap", "Imprison", "Refresh", "Grudge", "Snatch", "Secret Power",
- "Dive", "Arm Thrust", "Camouflage", "Tail Glow", "Luster Purge", "Mist Ball", "Feather Dance", "Teeter Dance",
- "Blaze Kick", "Mud Sport", "Ice Ball", "Needle Arm", "Slack Off", "Hyper Voice", "Poison Fang", "Crush Claw",
- "Blast Burn", "Hydro Cannon", "Meteor Mash", "Astonish", "Weather Ball", "Aromatherapy", "Fake Tears", "Air Cutter",
- "Overheat", "Odor Sleuth", "Rock Tomb", "Silver Wind", "Metal Sound", "Grass Whistle", "Tickle", "Cosmic Power",
- "Water Spout", "Signal Beam", "Shadow Punch", "Extrasensory", "Sky Uppercut", "Sand Tomb", "Sheer Cold", "Muddy Water",
- "Bullet Seed", "Aerial Ace", "Icicle Spear", "Iron Defense", "Block", "Howl", "Dragon Claw", "Frenzy Plant", "Bulk Up",
- "Bounce", "Mud Shot", "Poison Tail", "Covet", "Volt Tackle", "Magical Leaf", "Water Sport", "Calm Mind", "Leaf Blade",
- "Dragon Dance", "Rock Blast", "Shock Wave", "Water Pulse", "Doom Desire", "Psycho Boost",
- -- Gen 4
- "Roost", "Gravity", "Miracle Eye", "Wake-Up Slap", "Hammer Arm", "Gyro Ball", "Healing Wish", "Brine", "Natural Gift",
- "Feint", "Pluck", "Tailwind", "Acupressure", "Metal Burst", "U-turn", "Close Combat", "Payback", "Assurance", "Embargo",
- "Fling", "Psycho Shift", "Trump Card", "Heal Block", "Wring Out", "Power Trick", "Gastro Acid", "Lucky Chant", "Me First",
- "Copycat", "Power Swap", "Guard Swap", "Punishment", "Last Resort", "Worry Seed", "Sucker Punch", "Toxic Spikes",
- "Heart Swap", "Aqua Ring", "Magnet Rise", "Flare Blitz", "Force Palm", "Aura Sphere", "Rock Polish", "Poison Jab",
- "Dark Pulse", "Night Slash", "Aqua Tail", "Seed Bomb", "Air Slash", "X-Scissor", "Bug Buzz", "Dragon Pulse", "Dragon Rush",
- "Power Gem", "Drain Punch", "Vacuum Wave", "Focus Blast", "Energy Ball", "Brave Bird", "Earth Power", "Switcheroo",
- "Giga Impact", "Nasty Plot", "Bullet Punch", "Avalanche", "Ice Shard", "Shadow Claw", "Thunder Fang", "Ice Fang",
- "Fire Fang", "Shadow Sneak", "Mud Bomb", "Psycho Cut", "Zen Headbutt", "Mirror Shot", "Flash Cannon", "Rock Climb",
- "Defog", "Trick Room", "Draco Meteor", "Discharge", "Lava Plume", "Leaf Storm", "Power Whip", "Rock Wrecker",
- "Cross Poison", "Gunk Shot", "Iron Head", "Magnet Bomb", "Stone Edge", "Captivate", "Stealth Rock", "Grass Knot", "Chatter",
- "Judgment", "Bug Bite", "Charge Beam", "Wood Hammer", "Aqua Jet", "Attack Order", "Defend Order", "Heal Order", "Head Smash",
- "Double Hit", "Roar of Time", "Spacial Rend", "Lunar Dance", "Crush Grip", "Magma Storm", "Dark Void", "Seed Flare",
- "Ominous Wind", "Shadow Force"}
+ -- 第一世代
+ "--", "拍击", "空手劈", "连环巴掌", "连续拳", "百万吨重拳", "聚宝功", "火焰拳", "冰冻拳",
+ "雷电拳", "抓", "夹住", "断头钳", "旋风刀", "剑舞", "居合斩", "起风", "翅膀攻击",
+ "吹飞", "飞翔", "绑紧", "摔打", "藤鞭", "踩踏", "二连踢", "百万吨重踢", "飞踢", "回旋踢",
+ "泼沙", "头锤", "角撞", "乱击", "角钻", "撞击", "泰山压顶", "紧束", "猛撞",
+ "大闹一番", "舍身冲撞", "摇尾巴", "毒针", "双针", "飞弹针", "瞪眼", "咬住", "叫声", "吼叫",
+ "唱歌", "超音波", "音爆", "定身法", "溶解液", "火花", "喷射火焰", "白雾", "水枪", "水炮",
+ "冲浪", "冰冻光束", "暴风雪", "幻象光线", "泡沫光线", "极光束", "破坏光线", "啄", "啄钻",
+ "地狱翻滚", "踢倒", "双倍奉还", "地球上投", "怪力", "吸取", "超级吸取", "寄生种子", "生长",
+ "飞叶快刀", "日光束", "毒粉", "麻痹粉", "催眠粉", "花瓣舞", "吐丝",
+ "龙之怒", "火焰旋涡", "电击", "十万伏特", "电磁波", "打雷", "落石", "地震",
+ "地裂", "挖洞", "剧毒", "念力", "精神强念", "催眠术", "瑜伽姿势", "高速移动", "电光一闪", "愤怒",
+ "瞬间移动", "黑夜魔影", "模仿", "刺耳声", "影子分身", "自我再生", "变硬", "变小", "烟幕",
+ "奇异之光", "缩入壳中", "变圆", "屏障", "光墙", "黑雾", "反射壁", "聚气", "忍耐",
+ "挥指", "鹦鹉学舌", "自爆", "炸蛋", "舌舔", "浊雾", "污泥攻击", "骨棒", "大字爆炎",
+ "攀瀑", "贝壳夹击", "高速星星", "火箭头锤", "尖刺加农炮", "缠绕", "瞬间失忆", "折弯汤匙", "生蛋",
+ "飞膝踢", "大蛇瞪眼", "食梦", "毒瓦斯", "投球", "吸血", "恶魔之吻", "神鸟猛击",
+ "变身", "泡沫", "迷昏拳", "蘑菇孢子", "闪光", "精神波", "跃起", "溶化", "蟹钳锤",
+ "大爆炸", "乱抓", "骨头回力镖", "睡觉", "岩崩", "必杀门牙", "棱角化", "纹理", "三重攻击",
+ "愤怒门牙", "劈开", "替身", "挣扎",
+ -- 第二世代
+ "写生", "三连踢", "小偷", "蛛网", "心之眼",
+ "恶梦", "火焰轮", "打鼾", "诅咒", "抓狂", "纹理２", "气旋攻击", "棉孢子", "起死回生",
+ "怨恨", "细雪", "守住", "音速拳", "鬼面", "出奇一击", "天使之吻", "腹鼓",
+ "污泥炸弹", "掷泥", "章鱼桶炮", "撒菱", "电磁炮", "识破", "同命", "灭亡之歌",
+ "冰冻之风", "看穿", "骨棒乱打", "锁定", "逆鳞", "沙暴", "终极吸取", "挺住", "撒娇", "滚动",
+ "点到为止", "虚张声势", "喝牛奶", "电光", "连斩", "钢翼", "黑色目光", "迷人", "梦话",
+ "治愈铃声", "报恩", "礼物", "迁怒", "神秘守护", "分担痛楚", "神圣之火", "震级",
+ "爆裂拳", "超级角击", "龙息", "接棒", "再来一次", "追打", "高速旋转", "甜甜香气",
+ "铁尾", "金属爪", "借力摔", "晨光", "光合作用", "月光", "觉醒力量", "十字劈",
+ "龙卷风", "求雨", "大晴天", "咬碎", "镜面反射", "自我暗示", "神速", "原始之力",
+ "暗影球", "预知未来", "碎岩", "潮旋", "围攻",
+ -- 第三世代
+ "击掌奇袭", "吵闹", "蓄力", "喷出", "吞下", "热风", "冰雹", "无理取闹", "吹捧", "鬼火",
+ "临别礼物", "硬撑", "真气拳", "清醒", "看我嘛", "自然之力", "充电", "挑衅", "帮助",
+ "戏法", "扮演", "祈愿", "借助", "扎根", "蛮力", "魔法反射", "回收利用", "报复", "劈瓦",
+ "哈欠", "拍落", "蛮干", "喷火", "特性互换", "封印", "焕然一新", "怨念", "抢夺", "秘密之力",
+ "潜水", "猛推", "保护色", "萤火", "洁净光芒", "薄霧球", "羽毛舞", "摇晃舞",
+ "火焰踢", "玩泥巴", "冰球", "尖刺臂", "偷懒", "巨声", "剧毒牙", "撕裂爪",
+ "爆炸烈焰", "加农水炮", "彗星拳", "惊吓", "气象球", "芳香治疗", "假哭", "空气利刃",
+ "过热", "气味侦测", "岩石封锁", "银色旋风", "金属音", "草笛", "挠痒", "宇宙力量",
+ "喷水", "信号光束", "暗影拳", "神通力", "冲天拳", "流沙地狱", "绝对零度", "浊流",
+ "种子机关枪", "燕返", "冰锥", "铁壁", "挡路", "长嚎", "龙爪", "疯狂植物", "健美",
+ "弹跳", "泥巴射击", "毒尾", "渴望", "伏特攻击", "魔法叶", "玩水", "冥想", "叶刃",
+ "龙之舞", "岩石爆击", "电击波", "水之波动", "破灭之愿", "精神突进",
+ -- 第四世代
+ "羽栖", "重力", "奇迹之眼", "唤醒巴掌", "臂錘", "陀螺球", "治愈之愿", "盐水", "自然之恩",
+ "佯攻", "啄食", "顺风", "点穴", "金属爆炸", "急速折返", "近身战", "以牙還牙", "恶意追击", "查封",
+ "投擲", "精神转移", "王牌", "回复封锁", "绞紧", "力量戏法", "胃液", "幸运咒语", "抢先一步",
+ "仿效", "力量互换", "防守互换", "懲罰", "珍藏", "烦恼种子", "突袭", "毒菱",
+ "心灵互换", "水流环", "电磁飘浮", "闪焰冲锋", "发劲", "波导弹", "岩石打磨", "毒击",
+ "恶之波动", "暗袭要害", "水流尾", "种子炸弹", "空气斩", "十字剪", "虫鸣", "龙之波动", "龙之俯冲",
+ "力量宝石", "吸取拳", "真空波", "真气弹", "能量球", "勇鸟猛攻", "大地之力", "掉包",
+ "终极冲击", "诡计", "子弹拳", "雪崩", "冰砾", "暗影爪", "雷电牙", "冰冻牙",
+ "火焰牙", "影子偷袭", "泥巴炸弹", "精神利刃", "意念头锤", "镜光射击", "加农光炮", "攀岩",
+ "清除浓雾", "戏法空间", "流星群", "放电", "喷烟", "飞叶风暴", "强力鞭打", "岩石炮",
+ "十字毒刃", "垃圾射击", "铁头", "磁铁炸弹", "尖石攻击", "诱惑", "隐形岩", "打草结", "喋喋不休",
+ "制裁光砾", "虫咬", "充电光束", "木槌", "水流喷射", "攻击指令", "防御指令", "回复指令", "双刃头锤",
+ "二连击", "时光咆哮", "亚空裂斩", "新月舞", "捏碎", "熔岩风暴", "暗黑洞", "种子闪光",
+ "奇异之风", "暗影潜袭"}
 
 local itemNamesList = {
- "None", "Master Ball", "Ultra Ball", "Great Ball", "Poké Ball", "Safari Ball", "Net Ball", "Dive Ball",
- "Nest Ball", "Repeat Ball", "Timer Ball", "Luxury Ball", "Premier Ball", "Dusk Ball", "Heal Ball",
- "Quick Ball", "Cherish Ball", "Potion", "Antidote", "Burn Heal", "Ice Heal", "Awakening", "Parlyz Heal",
- "Full Restore", "Max Potion", "Hyper Potion", "Super Potion", "Full Heal", "Revive", "Max Revive",
- "Fresh Water", "Soda Pop", "Lemonade", "Moomoo Milk", "EnergyPowder", "Energy Root", "Heal Powder",
- "Revival Herb", "Ether", "Max Ether", "Elixir", "Max Elixir", "Lava Cookie", "Berry Juice",
- "Sacred Ash", "HP Up", "Protein", "Iron", "Carbos", "Calcium", "Rare Candy", "PP Up", "Zinc",
- "PP Max", "Old Gateau", "Guard Spec.", "Dire Hit", "X Attack", "X Defend", "X Speed", "X Accuracy",
- "X Special", "X Sp. Def", "Poké Doll", "Fluffy Tail", "Blue Flute", "Yellow Flute", "Red Flute",
- "Black Flute", "White Flute", "Shoal Salt", "Shoal Shell", "Red Shard", "Blue Shard", "Yellow Shard",
- "Green Shard", "Super Repel", "Max Repel", "Escape Rope", "Repel", "Sun Stone", "Moon Stone",
- "Fire Stone", "Thunderstone", "Water Stone", "Leaf Stone", "TinyMushroom", "Big Mushroom", "Pearl",
- "Big Pearl", "Stardust", "Star Piece", "Nugget", "Heart Scale", "Honey", "Growth Mulch",
- "Damp Mulch", "Stable Mulch", "Gooey Mulch", "Root Fossil", "Claw Fossil", "Helix Fossil", "Dome Fossil",
- "Old Amber", "Armor Fossil", "Skull Fossil", "Rare Bone", "Shiny Stone", "Dusk Stone", "Dawn Stone",
- "Oval Stone", "Odd Keystone", "Griseous Orb", "unknown1", "unknown2", "unknown3", "unknown4", "unknown5",
- "unknown6", "unknown7", "unknown8", "unknown9", "unknown10", "unknown11", "unknown12", "unknown13",
- "unknown14", "unknown15", "unknown16", "unknown17", "unknown18", "unknown19", "unknown20", "unknown21",
- "unknown22", "Adamant Orb", "Lustrous Orb", "Grass Mail", "Flame Mail", "Bubble Mail", "Bloom Mail",
- "Tunnel Mail", "Steel Mail", "Heart Mail", "Snow Mail", "Space Mail", "Air Mail", "Mosaic Mail", "Brick Mail",
- "Cheri Berry", "Chesto Berry", "Pecha Berry", "Rawst Berry", "Aspear Berry", "Leppa Berry", "Oran Berry",
- "Persim Berry", "Lum Berry", "Sitrus Berry", "Figy Berry", "Wiki Berry", "Mago Berry", "Aguav Berry",
- "Iapapa Berry", "Razz Berry", "Bluk Berry", "Nanab Berry", "Wepear Berry", "Pinap Berry", "Pomeg Berry",
- "Kelpsy Berry", "Qualot Berry", "Hondew Berry", "Grepa Berry", "Tamato Berry", "Cornn Berry", "Magost Berry",
- "Rabuta Berry", "Nomel Berry", "Spelon Berry", "Pamtre Berry", "Watmel Berry", "Durin Berry",
- "Belue Berry", "Occa Berry", "Passho Berry", "Wacan Berry", "Rindo Berry", "Yache Berry",
- "Chople Berry", "Kebia Berry", "Shuca Berry", "Coba Berry", "Payapa Berry", "Tanga Berry",
- "Charti Berry", "Kasib Berry", "Haban Berry", "Colbur Berry", "Babiri Berry", "Chilan Berry", "Liechi Berry",
- "Ganlon Berry", "Salac Berry", "Petaya Berry", "Apicot Berry", "Lansat Berry", "Starf Berry",
- "Enigma Berry", "Micle Berry", "Custap Berry", "Jaboca Berry", "Rowap Berry", "BrightPowder",
- "White Herb", "Macho Brace", "Exp. Share", "Quick Claw", "Soothe Bell", "Mental Herb", "Choice Band",
- "King's Rock", "SilverPowder", "Amulet Coin", "Cleanse Tag", "Soul Dew", "DeepSeaTooth",
- "DeepSeaScale", "Smoke Ball", "Everstone", "Focus Band", "Lucky Egg", "Scope Lens", "Metal Coat",
- "Leftovers", "Dragon Scale", "Light Ball", "Soft Sand", "Hard Stone", "Miracle Seed", "BlackGlasses",
- "Black Belt", "Magnet", "Mystic Water", "Sharp Beak", "Poison Barb", "NeverMeltIce", "Spell Tag",
- "TwistedSpoon", "Charcoal", "Dragon Fang", "Silk Scarf", "Up-Grade", "Shell Bell", "Sea Incense",
- "Lax Incense", "Lucky Punch", "Metal Powder", "Thick Club", "Stick", "Red Scarf", "Blue Scarf",
- "Pink Scarf", "Green Scarf", "Yellow Scarf", "Wide Lens", "Muscle Band", "Wise Glasses", "Expert Belt",
- "Light Clay", "Life Orb", "Power Herb", "Toxic Orb", "Flame Orb", "Quick Powder", "Focus Sash",
- "Zoom Lens", "Metronome", "Iron Ball", "Lagging Tail", "Destiny Knot", "Black Sludge", "Icy Rock",
- "Smooth Rock", "Heat Rock", "Damp Rock", "Grip Claw", "Choice Scarf", "Sticky Barb", "Power Bracer",
- "Power Belt", "Power Lens", "Power Band", "Power Anklet", "Power Weight", "Shed Shell",
- "Big Root", "Choice Specs", "Flame Plate", "Splash Plate", "Zap Plate", "Meadow Plate", "Icicle Plate",
- "Fist Plate", "Toxic Plate", "Earth Plate", "Sky Plate", "Mind Plate", "Insect Plate",
- "Stone Plate", "Spooky Plate", "Draco Plate", "Dread Plate", "Iron Plate", "Odd Incense",
- "Rock Incense", "Full Incense", "Wave Incense", "Rose Incense", "Luck Incense", "Pure Incense",
- "Protector", "Electirizer", "Magmarizer", "Dubious Disc", "Reaper Cloth", "Razor Claw", "Razor Fang",
- "TM01", "TM02", "TM03", "TM04", "TM05", "TM06", "TM07", "TM08", "TM09", "TM10", "TM11", "TM12",
- "TM13", "TM14", "TM15", "TM16", "TM17", "TM18", "TM19", "TM20", "TM21", "TM22", "TM23", "TM24",
- "TM25", "TM26", "TM27", "TM28", "TM29", "TM30", "TM31", "TM32", "TM33", "TM34", "TM35", "TM36",
- "TM37", "TM38", "TM39", "TM40", "TM41", "TM42", "TM43", "TM44", "TM45", "TM46", "TM47", "TM48",
- "TM49", "TM50", "TM51", "TM52", "TM53", "TM54", "TM55", "TM56", "TM57", "TM58", "TM59", "TM60",
- "TM61", "TM62", "TM63", "TM64", "TM65", "TM66", "TM67", "TM68", "TM69", "TM70", "TM71", "TM72",
- "TM73", "TM74", "TM75", "TM76", "TM77", "TM78", "TM79", "TM80", "TM81", "TM82", "TM83", "TM84",
- "TM85", "TM86", "TM87", "TM88", "TM89", "TM90", "TM91", "TM92", "HM01", "HM02", "HM03", "HM04",
- "HM05", "HM06", "HM07", "HM08", "Explorer Kit", "Loot Sack", "Rule Book", "Poké Radar", "Point Card",
- "Journal", "Seal Case", "Fashion Case", "Seal Bag", "Pal Pad", "Works Key", "Old Charm",
- "Galactic Key", "Red Chain", "Town Map", "Vs. Seeker", "Coin Case", "Old Rod", "Good Rod", "Super Rod",
- "Sprayduck", "Poffin Case", "Bicycle", "Suite Key", "Oak's Letter", "Lunar Wing", "Member Card",
- "Azure Flute", "S.S. Ticket", "Contest Pass", "Magma Stone", "Parcel", "Coupon 1", "Coupon 2",
- "Coupon 3", "Storage Key", "SecretPotion", "Vs. Recorder", "Gracidea", "Secret Key",
- "Apricorn Box", "Unown Report", "Berry Pots", "Dowsing MCHN", "Blue Card", "Slowpoke Tail",
- "Clear Bell", "Card Key", "Basement Key", "SquirtBottle", "Red Scale", "Lost Item", "Pass",
- "Machine Part", "Silver Wing", "Rainbow Wing", "Mystery Egg", "Red Apricorn", "Yellow Apricorn",
- "Blue Apricorn", "Green Apricorn", "Pink Apricorn", "White Apricorn", "Black Apricorn", "Fast Ball",
- "Level Ball", "Lure Ball", "Heavy Ball", "Love Ball", "Friend Ball", "Moon Ball",
- "Sport Ball", "Park Ball", "Photo Album", "GB Sounds", "Tidal Bell", "RageCandyBar", "Data Card 01",
- "Data Card 02", "Data Card 03", "Data Card 04", "Data Card 05", "Data Card 06", "Data Card 07",
- "Data Card 08", "Data Card 09", "Data Card 10", "Data Card 11", "Data Card 12", "Data Card 13",
- "Data Card 14", "Data Card 15", "Data Card 16", "Data Card 17", "Data Card 18", "Data Card 19",
- "Data Card 20", "Data Card 21", "Data Card 22", "Data Card 23", "Data Card 24", "Data Card 25",
- "Data Card 26", "Data Card 27", "Jade Orb", "Lock Capsule", "Red Orb", "Blue Orb", "Enigma Stone"}
+ "无", "大师球", "高级球", "超级球", "精灵球", "狩猎球", "捕网球", "潜水球",
+ "巢穴球", "重复球", "计时球", "豪华球", "纪念球", "黑暗球", "治愈球",
+ "先机球", "贵重球", "伤药", "解毒药", "灼伤药", "解冻药", "解眠药", "解麻药",
+ "全复药", "全满药", "厉害伤药", "好伤药", "万灵药", "活力碎片", "活力块",
+ "美味之水", "劲爽汽水", "果汁牛奶", "哞哞鲜奶", "元气粉", "元气根", "万能粉",
+ "复活草", "ＰＰ单项小补剂", "ＰＰ单项全补剂", "ＰＰ多项小补剂", "ＰＰ多项全补剂", "釜炎仙贝", "树果汁",
+ "圣灰", "ＨＰ增强剂", "攻击增强剂", "防御增强剂", "速度增强剂", "特攻增强剂", "神奇糖果", "ＰＰ提升剂", "特防增强剂",
+ "ＰＰ极限提升剂", "森之羊羹", "能力防守", "要害攻击", "力量强化", "防御强化", "速度强化", "命中强化",
+ "特攻强化", "特防强化", "皮皮玩偶", "向尾喵的尾巴", "蓝色玻璃哨", "黄色玻璃哨", "红色玻璃哨",
+ "黑色玻璃哨", "白色玻璃哨", "浅滩海盐", "浅滩贝壳", "红色碎片", "蓝色碎片", "黄色碎片",
+ "绿色碎片", "白银喷雾", "黄金喷雾", "离洞绳", "除虫喷雾", "日之石", "月之石",
+ "火之石", "雷之石", "水之石", "叶之石", "小蘑菇", "大蘑菇", "珍珠",
+ "大珍珠", "星星沙子", "星星碎片", "金珠", "心之鳞片", "甜甜蜜", "速速肥",
+ "湿湿肥", "久久肥", "粘粘肥", "根状化石", "爪子化石", "贝壳化石", "甲壳化石",
+ "秘密琥珀", "盾甲化石", "头盖化石", "贵重骨头", "光之石", "暗之石", "觉醒之石",
+ "浑圆之石", "楔石", "白金宝珠", "未知1", "未知2", "未知3", "未知4", "未知5",
+ "未知6", "未知7", "未知8", "未知9", "未知10", "未知11", "未知12", "未知13",
+ "未知14", "未知15", "未知16", "未知17", "未知18", "未知19", "未知20", "未知21",
+ "未知22", "金刚宝珠", "白玉宝珠", "青草邮件", "火焰邮件", "水蓝邮件", "绽放邮件",
+ "隧道邮件", "钢铁邮件", "甜蜜邮件", "暴雪邮件", "空间邮件", "天空邮件", "彩嵌邮件", "砖块邮件",
+ "樱子果", "零余果", "桃桃果", "莓莓果", "利木果", "苹野果", "橙橙果",
+ "柿仔果", "木子果", "文柚果", "勿花果", "异奇果", "芒芒果", "乐芭果",
+ "芭亚果", "蔓莓果", "墨莓果", "蕉香果", "西梨果", "凰梨果", "榴石果",
+ "藻根果", "比巴果", "哈密果", "萄葡果", "茄番果", "玉黍果", "岳竹果",
+ "茸丹果", "檬柠果", "刺角果", "椰木果", "瓜西果", "金枕果",
+ "靛莓果", "巧可果", "千香果", "烛木果", "罗子果", "番荔果",
+ "莲蒲果", "通通果", "腰木果", "棱瓜果", "福禄果", "扁樱果",
+ "草蚕果", "佛柑果", "莓榴果", "刺耳果", "霹霹果", "灯浆果", "枝荔果",
+ "龙睛果", "沙鳞果", "龙火果", "杏仔果", "兰萨果", "星桃果",
+ "谜芝果", "奇秘果", "释陀果", "嘉珍果", "雾莲果", "光粉",
+ "白色香草", "强制锻炼器", "学习装置", "先制之爪", "安抚之铃", "心灵香草", "讲究头带",
+ "王者之证", "银粉", "护符金币", "洁净之符", "心之水滴", "深海之牙",
+ "深海鳞片", "烟雾球", "不变之石", "气势头带", "幸运蛋", "焦点镜", "金属膜",
+ "吃剩的东西", "龙之鳞片", "电气球", "柔软沙子", "硬石头", "奇迹种子", "黑色眼镜",
+ "黑带", "磁铁", "神秘水滴", "锐利鸟嘴", "毒针", "不融冰", "诅咒之符",
+ "弯曲的汤匙", "木炭", "龙之牙", "丝绸围巾", "升级数据", "贝壳之铃", "海潮薰香",
+ "悠闲薰香", "吉利拳", "金属粉", "粗骨头", "大葱", "红色头巾", "蓝色头巾",
+ "粉红头巾", "绿色头巾", "黄色头巾", "广角镜", "力量头带", "博识眼镜", "达人带",
+ "光之黏土", "生命宝珠", "强力香草", "剧毒宝珠", "火焰宝珠", "速度粉", "气势披带",
+ "对焦镜", "节拍器", "黑色铁球", "后攻之尾", "红线", "黑色污泥", "冰冷岩石",
+ "沙沙岩石", "炽热岩石", "潮湿岩石", "紧缠钩爪", "讲究围巾", "附着针", "力量护腕",
+ "力量腰带", "力量镜", "力量束带", "力量护踝", "力量负重", "美丽空壳",
+ "大根茎", "讲究眼镜", "火球石板", "水滴石板", "雷电石板", "碧绿石板", "冰柱石板",
+ "拳头石板", "剧毒石板", "大地石板", "蓝天石板", "神奇石板", "玉虫石板",
+ "岩石石板", "妖怪石板", "龙之石板", "恶颜石板", "钢铁石板", "奇异薰香",
+ "岩石薰香", "饱腹薰香", "涟漪薰香", "花朵薰香", "幸运薰香", "洁净薰香",
+ "护具", "电力增幅器", "熔岩增幅器", "可疑补丁", "灵界之布", "锐利之爪", "锐利之牙",
+ "招式学习器01", "招式学习器02", "招式学习器03", "招式学习器04", "招式学习器05", "招式学习器06", "招式学习器07", "招式学习器08", "招式学习器09", "招式学习器10", "招式学习器11", "招式学习器12",
+ "招式学习器13", "招式学习器14", "招式学习器15", "招式学习器16", "招式学习器17", "招式学习器18", "招式学习器19", "招式学习器20", "招式学习器21", "招式学习器22", "招式学习器23", "招式学习器24",
+ "招式学习器25", "招式学习器26", "招式学习器27", "招式学习器28", "招式学习器29", "招式学习器30", "招式学习器31", "招式学习器32", "招式学习器33", "招式学习器34", "招式学习器35", "招式学习器36",
+ "招式学习器37", "招式学习器38", "招式学习器39", "招式学习器40", "招式学习器41", "招式学习器42", "招式学习器43", "招式学习器44", "招式学习器45", "招式学习器46", "招式学习器47", "招式学习器48",
+ "招式学习器49", "招式学习器50", "招式学习器51", "招式学习器52", "招式学习器53", "招式学习器54", "招式学习器55", "招式学习器56", "招式学习器57", "招式学习器58", "招式学习器59", "招式学习器60",
+ "招式学习器61", "招式学习器62", "招式学习器63", "招式学习器64", "招式学习器65", "招式学习器66", "招式学习器67", "招式学习器68", "招式学习器69", "招式学习器70", "招式学习器71", "招式学习器72",
+ "招式学习器73", "招式学习器74", "招式学习器75", "招式学习器76", "招式学习器77", "招式学习器78", "招式学习器79", "招式学习器80", "招式学习器81", "招式学习器82", "招式学习器83", "招式学习器84",
+ "招式学习器85", "招式学习器86", "招式学习器87", "招式学习器88", "招式学习器89", "招式学习器90", "招式学习器91", "招式学习器92", "秘传学习器01", "秘传学习器02", "秘传学习器03", "秘传学习器04",
+ "秘传学习器05", "秘传学习器06", "秘传学习器07", "秘传学习器08", "探险套装", "宝物袋", "规则书", "宝可追踪", "点数卡",
+ "冒险笔记", "贴纸盒", "饰品盒", "贴纸袋", "朋友手册", "发电厂钥匙", "古代护符",
+ "银河队钥匙", "红色锁链", "城镇地图", "对战搜寻器", "代币盒", "破旧钓竿", "好钓竿", "厉害钓竿",
+ "可达鸭喷壶", "宝芬盒", "自行车", "房间钥匙", "大木的信", "新月之羽", "会员卡",
+ "天界之笛", "船票", "华丽大赛参加证", "火山镇石", "包裹", "兑换券１", "兑换券２",
+ "兑换券３", "仓库钥匙", "秘传之药", "对战记录器", "葛拉西蒂亚花", "秘密钥匙",
+ "球果盒", "未知图腾笔记", "树果种植盆", "探宝器", "蓝卡", "美味尾巴",
+ "透明铃铛", "钥匙卡", "地下钥匙", "杰尼龟喷壶", "红色鳞片", "遗失物", "定期月票",
+ "机械零件", "银色之羽", "虹色之羽", "神奇蛋", "红球果", "黄球果",
+ "蓝球果", "绿球果", "粉球果", "白球果", "黑球果", "速度球",
+ "等级球", "诱饵球", "沉重球", "甜蜜球", "友友球", "月亮球",
+ "竞赛球", "公园球", "相册", "ＧＢ播放器", "海声铃铛", "愤怒馒头", "数据卡01",
+ "数据卡02", "数据卡03", "数据卡04", "数据卡05", "数据卡06", "数据卡07",
+ "数据卡08", "数据卡09", "数据卡10", "数据卡11", "数据卡12", "数据卡13",
+ "数据卡14", "数据卡15", "数据卡16", "数据卡17", "数据卡18", "数据卡19",
+ "数据卡20", "数据卡21", "数据卡22", "数据卡23", "数据卡24", "数据卡25",
+ "数据卡26", "数据卡27", "草绿色宝珠", "上锁的容器", "朱红色宝珠", "靛蓝色宝珠", "谜之水晶"}
 
 local locationNamesList = {
- "Mystery Zone", "Mystery Zone", "Mystery Zone", "Jubilife City", "Jubilife City", "Jubilife City",
- "Jubilife City", "Jubilife City", "Pokétch Co.", "Pokétch Co.", "Pokétch Co.", "Jubilife TV",
- "Jubilife TV", "Jubilife TV", "Jubilife TV", "Jubilife TV", "Jubilife TV", "Jubilife TV",
- "Jubilife TV", "Jubilife City", "Jubilife City", "Jubilife City", "Jubilife City", "Jubilife City",
- "Jubilife City", "Jubilife City", "Jubilife City", "Jubilife City", "Global Terminal",
- "Trainers’ School", "Jubilife City", "Jubilife City", "Jubilife City", "Canalave City",
- "Canalave City", "Canalave City", "Canalave City", "Canalave City", "Canalave Library",
- "Canalave Library", "Canalave Library", "Canalave City", "Canalave City", "Canalave City",
- "Canalave City", "Oreburgh City", "Oreburgh City", "Oreburgh City", "Oreburgh City", "Oreburgh City",
- "Oreburgh City", "Oreburgh City", "Oreburgh City", "Oreburgh City", "Oreburgh City", "Oreburgh City",
- "Oreburgh City", "Oreburgh City", "Oreburgh City", "Mining Museum", "Oreburgh City", "Oreburgh City",
- "Oreburgh City", "Oreburgh City", "Oreburgh City", "Eterna City", "Eterna City", "Eterna City",
- "Eterna City", "Eterna City", "Eterna City", "Cycle Shop", "T.G. Eterna Bldg", "T.G. Eterna Bldg",
- "T.G. Eterna Bldg", "T.G. Eterna Bldg", "Eterna City", "Eterna City", "Eterna City", "Eterna City",
- "Route 206", "Eterna City", "Eterna City", "Eterna City", "Eterna City", "Eterna City", "Hearthome City",
- "Hearthome City", "Hearthome City", "Hearthome City", "Hearthome City", "Hearthome City",
- "Hearthome City", "Hearthome City", "Hearthome City", "Hearthome City", "Hearthome City",
- "Hearthome City", "Hearthome City", "Hearthome City", "Hearthome City", "Hearthome City",
- "Hearthome City", "Hearthome City", "Hearthome City", "Hearthome City", "Hearthome City",
- "Hearthome City", "Hearthome City", "Route 208", "Route 209", "Route 212", "Hearthome City",
- "Hearthome City", "Hearthome City", "Hearthome City", "Poffin House", "Contest Hall", "Contest Hall",
- "Foreign Building", "Pastoria City", "Pastoria City", "Pastoria City", "Pastoria City", "Pastoria City",
- "Pastoria City", "Pastoria City", "Pastoria City", "Pastoria City", "Pastoria City", "Pastoria City",
- "Pastoria City", "Veilstone City", "Veilstone City", "Veilstone City", "Veilstone City", "Game Corner",
- "Veilstone Store", "Veilstone Store", "Veilstone Store", "Veilstone Store", "Veilstone Store",
- "Veilstone Store", "Veilstone City", "Veilstone City", "Veilstone City", "Veilstone City", "Veilstone City",
- "Veilstone City", "Route 215", "Sunyshore City", "Sunyshore City", "Sunyshore City", "Sunyshore City",
- "Sunyshore City", "Sunyshore City", "Sunyshore City", "Sunyshore Market", "Sunyshore City", "Sunyshore City",
- "Sunyshore City", "Sunyshore City", "Sunyshore City", "Sunyshore City", "Vista Lighthouse", "Snowpoint City",
- "Snowpoint City", "Snowpoint City", "Snowpoint City", "Snowpoint City", "Snowpoint City", "Snowpoint City",
- "Pokémon League", "Pokémon League", "Pokémon League", "Pokémon League", "Pokémon League", "Pokémon League",
- "Pokémon League", "Pokémon League", "Pokémon League", "Pokémon League", "Pokémon League", "Pokémon League",
- "Pokémon League", "Pokémon League", "Pokémon League", "Pokémon League", "Fight Area", "Fight Area",
- "Fight Area", "Fight Area", "Battle Park", "Route 225", "Fight Area", "Fight Area", "Mystery Zone",
- "Oreburgh Mine", "Oreburgh Mine", "Oreburgh Mine", "Valley Windworks", "Valley Windworks", "Eterna Forest",
- "Eterna Forest", "Fuego Ironworks", "Fuego Ironworks", "Mystery Zone", "Mt. Coronet", "Mt. Coronet",
- "Mt. Coronet", "Mt. Coronet", "Mt. Coronet", "Mt. Coronet", "Mt. Coronet", "Mt. Coronet", "Mt. Coronet",
- "Mt. Coronet", "Mt. Coronet", "Mt. Coronet", "Mt. Coronet", "Spear Pillar", "Spear Pillar", "Mystery Zone",
- "Pastoria City", "Mystery Zone", "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins",
- "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins",
- "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins", "Solaceon Ruins",
- "Solaceon Ruins", "Solaceon Ruins", "Mystery Zone", "Victory Road", "Victory Road", "Victory Road",
- "Victory Road", "Victory Road", "Victory Road", "Mystery Zone", "Pal Park", "Mystery Zone", "Amity Square",
- "Ravaged Path", "Mystery Zone", "Floaroma Meadow", "Floaroma Meadow", "Oreburgh Gate", "Oreburgh Gate",
- "Fullmoon Island", "Fullmoon Island", "Stark Mountain", "Stark Mountain", "Stark Mountain", "Stark Mountain",
- "Mystery Zone", "Sendoff Spring", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave",
- "Turnback Cave", "Turnback Cave", "Flower Paradise", "Mystery Zone", "Mystery Zone", "Mystery Zone",
- "Snowpoint Temple", "Snowpoint Temple", "Snowpoint Temple", "Snowpoint Temple", "Snowpoint Temple",
- "Snowpoint Temple", "Wayward Cave", "Wayward Cave", "Ruin Maniac Cave", "Trophy Garden", "Iron Island",
- "Iron Island", "Iron Island", "Iron Island", "Iron Island", "Iron Island", "Iron Island", "Old Chateau",
- "Old Chateau", "Old Chateau", "Old Chateau", "Old Chateau", "Old Chateau", "Old Chateau", "Old Chateau",
- "Old Chateau", "Mystery Zone", "Galactic HQ", "Galactic HQ", "Galactic HQ", "Galactic HQ", "Galactic HQ",
- "Galactic HQ", "Lake Verity", "Lake Verity", "Verity Cavern", "Lake Valor", "Lake Valor", "Valor Cavern",
- "Lake Acuity", "Lake Acuity", "Acuity Cavern", "Newmoon Island", "Newmoon Island", "Battle Park", "Battle Park",
- "Mystery Zone", "Mystery Zone", "Battle Tower", "Battle Tower", "Battle Tower", "Battle Tower", "Battle Tower",
- "Battle Tower", "Mystery Zone", "Mystery Zone", "Verity Lakefront", "Verity Lakefront", "Valor Lakefront",
- "Restaurant", "Grand Lake", "Grand Lake", "Acuity Lakefront", "Spring Path", "Route 201", "Route 202",
- "Route 203", "Route 204", "Route 204", "Route 205", "Route 205", "Route 205", "Route 206", "Route 206",
- "Mystery Zone", "Route 207", "Route 208", "Route 208", "Route 209", "Route 209", "Route 209", "Route 209",
- "Route 209", "Route 209", "Route 210", "Route 210", "Route 210", "Route 211", "Route 211", "Route 212",
- "Pokémon Mansion", "Pokémon Mansion", "Pokémon Mansion", "Route 212", "Route 212", "Route 213", "Route 213",
- "Footstep House", "Grand Lake", "Grand Lake", "Grand Lake", "Grand Lake", "Route 214", "Route 214", "Route 215",
- "Route 216", "Route 216", "Route 217", "Route 217", "Route 217", "Route 218", "Route 218", "Route 218",
- "Route 219", "Route 221", "Pal Park", "Route 221", "Route 222", "Route 222", "Route 222", "Route 222",
- "Route 224", "Route 225", "Mystery Zone", "Mystery Zone", "Route 227", "Mystery Zone", "Mystery Zone",
- "Route 228", "Route 229", "Mystery Zone", "Mystery Zone", "Mystery Zone", "Twinleaf Town", "Twinleaf Town",
- "Twinleaf Town", "Twinleaf Town", "Twinleaf Town", "Twinleaf Town", "Twinleaf Town", "Sandgem Town",
- "Sandgem Town", "Sandgem Town", "Sandgem Town", "Sandgem Town", "Sandgem Town", "Sandgem Town", "Sandgem Town",
- "Floaroma Town", "Floaroma Town", "Floaroma Town", "Floaroma Town", "Flower Shop", "Floaroma Town",
- "Floaroma Town", "Solaceon Town", "Solaceon Town", "Solaceon Town", "Solaceon Town", "Pokémon Day Care",
- "Solaceon Town", "Solaceon Town", "Solaceon Town", "Solaceon Town", "Celestic Town", "Celestic Town",
- "Celestic Town", "Celestic Town", "Celestic Town", "Celestic Town", "Celestic Town", "Celestic Town",
- "Survival Area", "Survival Area", "Survival Area", "Survival Area", "Battleground", "Survival Area",
- "Survival Area", "Resort Area", "Resort Area", "Resort Area", "Resort Area", "Resort Area", "Resort Area",
- "Resort Area", "Villa", "Resort Area", "Mystery Zone", "Route 220", "Route 223", "Route 226", "Mystery Zone",
- "Route 230", "Seabreak Path", "Mystery Zone", "Jubilife City", "Canalave City", "Oreburgh City", "Eterna City",
- "Hearthome City", "Pastoria City", "Veilstone City", "Sunyshore City", "Snowpoint City", "Pokémon League",
- "Fight Area", "Sandgem Town", "Floaroma Town", "Solaceon Town", "Celestic Town", "Survival Area", "Resort Area",
- "Canalave City", "Café", "Battle Tower", "Galactic HQ", "Pokémon League", "Pokémon League", "Galactic HQ",
- "Route 225", "Route 226", "Route 227", "Route 228", "Route 228", "Route 228", "Great Marsh", "Great Marsh",
- "Great Marsh", "Great Marsh", "Great Marsh", "Great Marsh", "Hall of Origin", "Hall of Origin",
- "Ruin Maniac Cave", "Maniac Tunnel", "Iron Island", "Solaceon Ruins", "Vista Lighthouse", "Jubilife City",
- "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave",
- "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave",
- "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave",
- "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave",
- "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave",
- "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave",
- "Turnback Cave", "Turnback Cave", "Turnback Cave", "Turnback Cave", "Contest Hall", "Battle Frontier",
- "Battle Frontier", "Battle Tower", "Battle Factory", "Battle Hall", "Battle Castle", "Battle Arcade",
- "Veilstone Store", "Global Terminal", "Global Terminal", "Galactic HQ", "Distortion World", "ROTOM’s Room",
- "T.G. Eterna Bldg", "Distortion World", "Distortion World", "Distortion World", "Distortion World",
- "Distortion World", "Distortion World", "Distortion World", "Distortion World", "Distortion World",
- "Distortion World", "Distortion World", "Spear Pillar", "Spear Pillar", "Jubilife City", "Iron Island",
- "Iron Ruins", "Mt. Coronet", "Iceberg Ruins", "Route 228", "Rock Peak Ruins"}
+ "谜之地点", "谜之地点", "谜之地点", "祝庆市", "祝庆市", "祝庆市",
+ "祝庆市", "祝庆市", "宝可表公司", "宝可表公司", "宝可表公司", "祝庆电视台",
+ "祝庆电视台", "祝庆电视台", "祝庆电视台", "祝庆电视台", "祝庆电视台", "祝庆电视台",
+ "祝庆电视台", "祝庆市", "祝庆市", "祝庆市", "祝庆市", "祝庆市",
+ "祝庆市", "祝庆市", "祝庆市", "祝庆市", "全球终端",
+ "训练家学校", "祝庆市", "祝庆市", "祝庆市", "水脉市",
+ "水脉市", "水脉市", "水脉市", "水脉市", "水脉图书馆",
+ "水脉图书馆", "水脉图书馆", "水脉市", "水脉市", "水脉市",
+ "水脉市", "黑金市", "黑金市", "黑金市", "黑金市", "黑金市",
+ "黑金市", "黑金市", "黑金市", "黑金市", "黑金市", "黑金市",
+ "黑金市", "黑金市", "黑金市", "矿业博物馆", "黑金市", "黑金市",
+ "黑金市", "黑金市", "黑金市", "百代市", "百代市", "百代市",
+ "百代市", "百代市", "百代市", "自行车店", "银河百代大楼", "银河百代大楼",
+ "银河百代大楼", "银河百代大楼", "百代市", "百代市", "百代市", "百代市",
+ "206号道路", "百代市", "百代市", "百代市", "百代市", "百代市", "家缘市",
+ "家缘市", "家缘市", "家缘市", "家缘市", "家缘市",
+ "家缘市", "家缘市", "家缘市", "家缘市", "家缘市",
+ "家缘市", "家缘市", "家缘市", "家缘市", "家缘市",
+ "家缘市", "家缘市", "家缘市", "家缘市", "家缘市",
+ "家缘市", "家缘市", "208号道路", "209号道路", "212号道路", "家缘市",
+ "家缘市", "家缘市", "家缘市", "宝芬料理厨房", "华丽大赛会场", "华丽大赛会场",
+ "异文化建筑", "野原市", "野原市", "野原市", "野原市", "野原市",
+ "野原市", "野原市", "野原市", "野原市", "野原市", "野原市",
+ "野原市", "帷幕市", "帷幕市", "帷幕市", "帷幕市", "游戏城",
+ "帷幕百货", "帷幕百货", "帷幕百货", "帷幕百货", "帷幕百货",
+ "帷幕百货", "帷幕市", "帷幕市", "帷幕市", "帷幕市", "帷幕市",
+ "帷幕市", "215号道路", "滨海市", "滨海市", "滨海市", "滨海市",
+ "滨海市", "滨海市", "滨海市", "滨海市场", "滨海市", "滨海市",
+ "滨海市", "滨海市", "滨海市", "滨海市", "导航灯塔", "雪峰市",
+ "雪峰市", "雪峰市", "雪峰市", "雪峰市", "雪峰市", "雪峰市",
+ "宝可梦联盟", "宝可梦联盟", "宝可梦联盟", "宝可梦联盟", "宝可梦联盟", "宝可梦联盟",
+ "宝可梦联盟", "宝可梦联盟", "宝可梦联盟", "宝可梦联盟", "宝可梦联盟", "宝可梦联盟",
+ "宝可梦联盟", "宝可梦联盟", "宝可梦联盟", "宝可梦联盟", "战斗区", "战斗区",
+ "战斗区", "战斗区", "对战公园", "225号道路", "战斗区", "战斗区", "谜之地点",
+ "黑金炭坑", "黑金炭坑", "黑金炭坑", "山谷发电厂", "山谷发电厂", "百代森林",
+ "百代森林", "多多罗钢铁厂", "多多罗钢铁厂", "谜之地点", "天冠山", "天冠山",
+ "天冠山", "天冠山", "天冠山", "天冠山", "天冠山", "天冠山", "天冠山",
+ "天冠山", "天冠山", "天冠山", "天冠山", "枪之柱", "枪之柱", "谜之地点",
+ "野原市", "谜之地点", "随意遗迹", "随意遗迹", "随意遗迹", "随意遗迹",
+ "随意遗迹", "随意遗迹", "随意遗迹", "随意遗迹", "随意遗迹", "随意遗迹",
+ "随意遗迹", "随意遗迹", "随意遗迹", "随意遗迹", "随意遗迹", "随意遗迹",
+ "随意遗迹", "随意遗迹", "谜之地点", "冠軍之路（黑／白） 冠軍之路（黑２／白２）", "冠軍之路（黑／白） 冠軍之路（黑２／白２）", "冠軍之路（黑／白） 冠軍之路（黑２／白２）",
+ "冠軍之路（黑／白） 冠軍之路（黑２／白２）", "冠軍之路（黑／白） 冠軍之路（黑２／白２）", "冠軍之路（黑／白） 冠軍之路（黑２／白２）", "谜之地点", "伙伴公园", "谜之地点", "互动广场",
+ "荒芜小道", "谜之地点", "花苑花田", "花苑花田", "黑金闸口", "黑金闸口",
+ "满月岛", "满月岛", "嚴酷山", "嚴酷山", "嚴酷山", "嚴酷山",
+ "谜之地点", "送行之泉", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟",
+ "归途洞窟", "归途洞窟", "花之乐园", "谜之地点", "谜之地点", "谜之地点",
+ "雪峰神殿", "雪峰神殿", "雪峰神殿", "雪峰神殿", "雪峰神殿",
+ "雪峰神殿", "迷幻洞窟", "迷幻洞窟", "遗迹迷洞穴", "自豪的後院", "钢铁岛",
+ "钢铁岛", "钢铁岛", "钢铁岛", "钢铁岛", "钢铁岛", "钢铁岛", "森之洋馆",
+ "森之洋馆", "森之洋馆", "森之洋馆", "森之洋馆", "森之洋馆", "森之洋馆", "森之洋馆",
+ "森之洋馆", "谜之地点", "银河队基地", "银河队基地", "银河队基地", "银河队基地", "银河队基地",
+ "银河队基地", "心齐湖", "心齐湖", "心齐湖洞窟", "立志湖", "立志湖", "立志湖洞窟",
+ "睿智湖", "睿智湖", "睿智湖洞窟", "新月岛", "新月岛", "对战公园", "对战公园",
+ "谜之地点", "谜之地点", "对战塔", "对战塔", "对战塔", "对战塔", "对战塔",
+ "对战塔", "谜之地点", "谜之地点", "心齐湖畔", "心齐湖畔", "立志湖畔",
+ "餐厅", "大湖", "大湖", "睿智湖畔", "隐泉之路", "201号道路", "202号道路",
+ "203号道路", "204号道路", "204号道路", "205号道路", "205号道路", "205号道路", "206号道路", "206号道路",
+ "谜之地点", "207号道路", "208号道路", "208号道路", "209号道路", "209号道路", "209号道路", "209号道路",
+ "209号道路", "209号道路", "210号道路", "210号道路", "210号道路", "211号道路", "211号道路", "212号道路",
+ "宝可梦屋", "宝可梦屋", "宝可梦屋", "212号道路", "212号道路", "213号道路", "213号道路",
+ "足迹之家", "大湖", "大湖", "大湖", "大湖", "214号道路", "214号道路", "215号道路",
+ "216号道路", "216号道路", "217号道路", "217号道路", "217号道路", "218号道路", "218号道路", "218号道路",
+ "219号道路", "221号道路", "伙伴公园", "221号道路", "222号道路", "222号道路", "222号道路", "222号道路",
+ "224号道路", "225号道路", "谜之地点", "谜之地点", "227号道路", "谜之地点", "谜之地点",
+ "228号道路", "229号道路", "谜之地点", "谜之地点", "谜之地点", "双叶镇", "双叶镇",
+ "双叶镇", "双叶镇", "双叶镇", "双叶镇", "双叶镇", "真砂镇",
+ "真砂镇", "真砂镇", "真砂镇", "真砂镇", "真砂镇", "真砂镇", "真砂镇",
+ "花苑镇", "花苑镇", "花苑镇", "花苑镇", "花店", "花苑镇",
+ "花苑镇", "随意镇", "随意镇", "随意镇", "随意镇", "宝可梦寄放屋",
+ "随意镇", "随意镇", "随意镇", "随意镇", "神和镇", "神和镇",
+ "神和镇", "神和镇", "神和镇", "神和镇", "神和镇", "神和镇",
+ "生存区", "生存区", "生存区", "生存区", "对战场", "生存区",
+ "生存区", "名胜区", "名胜区", "名胜区", "名胜区", "名胜区", "名胜区",
+ "名胜区", "别墅", "名胜区", "谜之地点", "220号道路", "223号道路", "226号道路", "谜之地点",
+ "230号道路", "破海之路", "谜之地点", "祝庆市", "水脉市", "黑金市", "百代市",
+ "家缘市", "野原市", "帷幕市", "滨海市", "雪峰市", "宝可梦联盟",
+ "战斗区", "真砂镇", "花苑镇", "随意镇", "神和镇", "生存区", "名胜区",
+ "水脉市", "咖啡馆", "对战塔", "银河队基地", "宝可梦联盟", "宝可梦联盟", "银河队基地",
+ "225号道路", "226号道路", "227号道路", "228号道路", "228号道路", "228号道路", "大湿地", "大湿地",
+ "大湿地", "大湿地", "大湿地", "大湿地", "起始之殿", "起始之殿",
+ "遗迹迷洞穴", "遗迹迷隧道", "钢铁岛", "随意遗迹", "导航灯塔", "祝庆市",
+ "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟",
+ "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟",
+ "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟",
+ "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟",
+ "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟",
+ "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟",
+ "归途洞窟", "归途洞窟", "归途洞窟", "归途洞窟", "华丽大赛会场", "对战开拓区",
+ "对战开拓区", "对战塔", "对战工厂", "对战舞台", "对战城堡", "对战轮盘",
+ "帷幕百货", "全球终端", "全球终端", "银河队基地", "毁坏的世界", "洛托姆的房间",
+ "银河百代大楼", "毁坏的世界", "毁坏的世界", "毁坏的世界", "毁坏的世界",
+ "毁坏的世界", "毁坏的世界", "毁坏的世界", "毁坏的世界", "毁坏的世界",
+ "毁坏的世界", "毁坏的世界", "枪之柱", "枪之柱", "祝庆市", "钢铁岛",
+ "黑金遗迹", "天冠山", "冰山遗迹", "228号道路", "岩山遗迹"}
 
-local statusConditionNamesList = {"None", "SLP", "PSN", "BRN", "FRZ", "PAR", "PSN"}
+local statusConditionNamesList = {"无", "睡眠", "中毒", "灼伤", "冰冻", "麻痹", "中毒"}
 
 local mapAttributeData = {
  0, 0, 2, 2, 0, 2, 2, 0, 2, 0, 0, 2, 0, 0, 0, 0,
@@ -432,22 +432,22 @@ local gameLanguageCode = rshift(gameCode, 24)
 local gameLanguage = ""
 local wrongGameVersion = true
 
-if gameVersionCode == 0x414441 then  -- Check game version
- gameVersion = "Diamond"
+if gameVersionCode == 0x414441 then  -- 检查游戏版本
+ gameVersion = "钻石"
 elseif gameVersionCode == 0x415041 then
- gameVersion = "Pearl"
+ gameVersion = "珍珠"
 elseif gameVersionCode == 0x555043 then
- gameVersion = "Platinum"
+ gameVersion = "白金"
 elseif gameVersionCode == 0x475049 then
- gameVersion = "SoulSilver"
+ gameVersion = "魂银"
 elseif gameVersionCode == 0x4B5049 then
- gameVersion = "HeartGold"
+ gameVersion = "心金"
 end
 
 local mtIndexAddr, pidPointerAddr, delayAddr, currentSeedAddr, mtSeedAddr, trainerIDsPointerAddr, tempCurrentSeedDuringBattleAddr
 local koreanOffset = 0
 
-if gameLanguageCode == 0x44 then  -- Check game language and set addresses
+if gameLanguageCode == 0x44 then  -- 检查游戏语言并设置地址
  gameLanguage = "GER"
  mtIndexAddr = 0x21009D0
  pidPointerAddr = 0x2101ECC
@@ -514,50 +514,50 @@ elseif gameLanguageCode == 0x53 then
 end
 
 function printGameInfo()
- if gameVersion == "" then  -- Print game info
-  print("Version: Unknown game")
- elseif gameVersion ~= "Platinum" then
-  print(string.format("Version: %s - Wrong game version! Use Platinum instead\n", gameVersion))
+ if gameVersion == "" then  -- 打印游戏信息
+  print("版本：未知游戏")
+ elseif gameVersion ~= "白金" then
+  print(string.format("版本：%s - 游戏版本错误！请改用白金\n", gameVersion))
  elseif gameLanguage == "" then
-  print("Version: "..gameVersion)
-  print("Language: Unknown language\n")
+  print("版本："..gameVersion)
+  print("语言：未知语言\n")
  else
   wrongGameVersion = false
-  print("Version: "..gameVersion)
-  print(string.format("Language: %s\n", gameLanguage))
+  print("版本："..gameVersion)
+  print(string.format("语言：%s\n", gameLanguage))
  end
 end
 
 printGameInfo()
 
-local mode, index = {"None", "Capture", "Breeding", "Roamer", "Pandora", "Pokemon Info"}, 1
+local mode, index = {"无", "捕获", "培育", "游走宝可梦", "潘多拉", "宝可梦信息"}, 1
 
-function setBackgroundBoxes()  -- Set transparent black boxes
- if mode[index] == "Capture" or mode[index] == "Breeding" or mode[index] == "Pokemon Info" then
+function setBackgroundBoxes()  -- 设置透明黑色框
+ if mode[index] == "捕获" or mode[index] == "培育" or mode[index] == "宝可梦信息" then
   gui.box(1, -191, 156, -59, "#0000007F", "#0000007F")
- elseif mode[index] == "Roamer" then
+ elseif mode[index] == "游走宝可梦" then
   gui.box(1, -191, 156, -70, "#0000007F", "#0000007F")
  end
 
  gui.box(1, 55, 164, 66, "#0000007F", "#0000007F")
 
- if mode[index] ~= "None" then
+ if mode[index] ~= "无" then
   gui.box(151, 180, 254, 190, "#0000007F", "#0000007F")
   gui.box(193, -24, 254, -2, "#0000007F", "#0000007F")
  end
 end
 
-local dateTime = {["month"] = 1, ["day"] = 1, ["year"] = 0, ["hour"] = 0, ["minute"] = 0, ["second"] = 0}
+local dateTime = {["月"] = 1, ["日"] = 1, ["年"] = 0, ["小时"] = 0, ["分钟"] = 0, ["秒"] = 0}
 
 function setDateTime()
  local dateTimeAddr = 0x23FFDE8
 
- dateTime["year"] = string.format("%02X", read8Bit(dateTimeAddr))
- dateTime["month"] = string.format("%02X", read8Bit(dateTimeAddr + 0x1))
- dateTime["day"] = string.format("%02X", read8Bit(dateTimeAddr + 0x2))
- dateTime["hour"] = string.format("%02X", read8Bit(dateTimeAddr + 0x4) % 0x40)
- dateTime["minute"] = string.format("%02X", read8Bit(dateTimeAddr + 0x5))
- dateTime["second"] = string.format("%02X", read8Bit(dateTimeAddr + 0x6))
+ dateTime["年"] = string.format("%02X", read8Bit(dateTimeAddr))
+ dateTime["月"] = string.format("%02X", read8Bit(dateTimeAddr + 0x1))
+ dateTime["日"] = string.format("%02X", read8Bit(dateTimeAddr + 0x2))
+ dateTime["小时"] = string.format("%02X", read8Bit(dateTimeAddr + 0x4) % 0x40)
+ dateTime["分钟"] = string.format("%02X", read8Bit(dateTimeAddr + 0x5))
+ dateTime["秒"] = string.format("%02X", read8Bit(dateTimeAddr + 0x6))
 end
 
 function drawArrowLeft(a, b, c)
@@ -588,16 +588,16 @@ function getTabInput()
  end
 
  prevKey = key
- gui.text(2, 57, "Mode: "..mode[index])
+ gui.text(2, 57, "模式："..mode[index])
  drawArrowLeft(113, 57, leftArrowColor)
  gui.text(121, 57, "1 - 2")
  drawArrowRight(159, 57, rightArrowColor)
 end
 
 function buildSeedFromDelay(delay)
- local ab = ((dateTime["month"] * dateTime["day"]) + dateTime["minute"] + dateTime["second"]) % 0x100
- local cd = dateTime["hour"]
- local efgh = dateTime["year"] + delay
+ local ab = ((dateTime["月"] * dateTime["日"]) + dateTime["分钟"] + dateTime["秒"]) % 0x100
+ local cd = dateTime["小时"]
+ local efgh = dateTime["年"] + delay
 
  return ((ab * 0x1000000) + (cd * 0x10000) + efgh) % 0x100000000
 end
@@ -616,10 +616,10 @@ function setInitialSeed(mtSeed, delay)
                                    mtSeed == mtSeedTest3 and 2 or nil
 
   if initilSeedGenerationFlag then
-   print(string.format("Initial Seed: %08X", initialSeed))
+   print(string.format("初始种子：%08X", initialSeed))
    hitDelay = delay - initilSeedGenerationFlag
-   hitDate = string.format("20%s/%s/%s\n%s:%s:%s", dateTime["year"], dateTime["month"], dateTime["day"],
-                           dateTime["hour"], dateTime["minute"], dateTime["second"])
+   hitDate = string.format("20%s/%s/%s\n%s：%s：%s", dateTime["年"], dateTime["月"], dateTime["日"],
+                           dateTime["小时"], dateTime["分钟"], dateTime["秒"])
   end
  elseif delay == 0 then
   prevMTSeed = 0
@@ -673,28 +673,28 @@ function getRngInfo()
  local delay = read32Bit(delayAddr)
  local mtIndex = read32Bit(mtIndexAddr)
 
- if mtSeed == current then  -- Set the initial seed when the MT seed is equal to the LCRNG current seed
+ if mtSeed == current then  -- 当 MT 种子等于 LCRNG 当前种子时设置初始种子
   setInitialSeed(mtSeed, delay)
- elseif prevMTSeed ~= mtSeed then  -- Check when the value of the MT seed changes in RAM
-  if mtIndex ~= 624 and initialSeed ~= 0 then  -- Avoid advancing the MT counter when the MT seed changes the first time
+ elseif prevMTSeed ~= mtSeed then  -- 检查 RAM 中 MT 种子值变化时机
+  if mtIndex ~= 624 and initialSeed ~= 0 then  -- 当 MT 种子第一次变化时避免推进 MT 计数器
    mtCounter = mtCounter + 1
   end
 
   prevMTSeed = mtSeed
- elseif tempCurrentSeed == read32Bit(tempCurrentSeedDuringBattleAddr) and tempCurrentSeed ~= 0 then  -- Check when current seed is set on battle temp current seed address
+ elseif tempCurrentSeed == read32Bit(tempCurrentSeedDuringBattleAddr) and tempCurrentSeed ~= 0 then  -- 检查当前种子何时写入战斗临时当前种子地址
   lastCurrentSeedBeforeBattle = tempCurrentSeed
   battleStartJumpFlag = true
- elseif current == lastCurrentSeedBeforeBattle then  -- Check when battle ends
+ elseif current == lastCurrentSeedBeforeBattle then  -- 检查战斗结束时机
   battleStartJumpFlag = false
  end
 
- if not battleStartJumpFlag then  -- Calculate prng jumps only when not in battle
+ if not battleStartJumpFlag then  -- 仅在非战斗中计算 PRNG 跳转
   advances = mtSeed == current and 0 or advances + LCRNGDistance(tempCurrentSeed, current)
  end
 
  local mtAdvances = (mtIndex - 624) + (mtCounter * 624)
 
- if mtAdvances < 0 and initialSeed ~= 0 then  -- Avoid negative MT advances (this may happens in korean games)
+ if mtAdvances < 0 and initialSeed ~= 0 then  -- 避免 MT 推进数为负数（韩版游戏可能发生）
   mtCounter = mtCounter + 1
  end
 
@@ -713,25 +713,25 @@ function getInitialSeedInfoInput()
  end
 
  gui.box(1, 180, 110, 190, "#0000007F", "#0000007F")
- gui.text(2, 182, showInitialSeedInfoText and "7 - Hide Seed info" or "8 - Show Seed info")
+ gui.text(2, 182, showInitialSeedInfoText and "7 - 隐藏种子信息" or "8 - 显示种子信息")
 end
 
 function showInitialSeedInfo(delay)
- local delayOffset = mode[index] == "Pandora" and 43 or 21
+ local delayOffset = mode[index] == "潘多拉" and 43 or 21
 
  gui.box(1, 67, 164, 141, "#0000007F", "#0000007F")
- gui.text(2, 68, string.format("Next Initial Seed: %08X", buildSeedFromDelay(delay + delayOffset, true)))
- gui.text(2, 79, string.format("Next Delay: %d", delay + delayOffset))
- gui.text(2, 90, string.format("Delay: %d", delay))
- gui.text(2, 101, string.format("Hit Delay: %d", hitDelay))
- gui.text(2, 112, string.format("Hit Date/Hour:\n%s", hitDate))
+ gui.text(2, 68, string.format("下一初始种子：%08X", buildSeedFromDelay(delay + delayOffset, true)))
+ gui.text(2, 79, string.format("下一延迟：%d", delay + delayOffset))
+ gui.text(2, 90, string.format("延迟：%d", delay))
+ gui.text(2, 101, string.format("命中延迟：%d", hitDelay))
+ gui.text(2, 112, string.format("命中日期/小时：\n%s", hitDate))
 end
 
 function showDateTime()
- if mode[index] ~= "None" then
+ if mode[index] ~= "无" then
   gui.box(193, 0, 254, 22, "#0000007F", "#0000007F")
-  gui.text(194, 2, string.format("20%s/%s/%s", dateTime["year"], dateTime["month"], dateTime["day"]))
-  gui.text(194, 13, string.format("%s:%s:%s", dateTime["hour"], dateTime["minute"], dateTime["second"]))
+  gui.text(194, 2, string.format("20%s/%s/%s", dateTime["年"], dateTime["月"], dateTime["日"]))
+  gui.text(194, 13, string.format("%s：%s：%s", dateTime["小时"], dateTime["分钟"], dateTime["秒"]))
  end
 end
 
@@ -740,12 +740,12 @@ local showRngInfoText = true
 function showRngInfo()
  local currentSeed, mtAdvances, delay = getRngInfo()
 
- if showRngInfoText and mode[index] ~= "None" then
+ if showRngInfoText and mode[index] ~= "无" then
   gui.box(1, 0, 134, 44, "#0000007F", "#0000007F")
-  gui.text(2, 2, string.format("Initial Seed: %08X", initialSeed))
-  gui.text(2, 13, string.format("Current Seed: %08X", currentSeed))
-  gui.text(2, 24, string.format("LCRNG Advances: %d", advances))
-  gui.text(2, 35, string.format("MT Advances: %d", mtAdvances))
+  gui.text(2, 2, string.format("初始种子：%08X", initialSeed))
+  gui.text(2, 13, string.format("当前种子：%08X", currentSeed))
+  gui.text(2, 24, string.format("LCRNG 推进数：%d", advances))
+  gui.text(2, 35, string.format("MT 推进数：%d", mtAdvances))
 
   getInitialSeedInfoInput()
 
@@ -765,7 +765,7 @@ function getRngInfoInput()
   showRngInfoText = false
  end
 
- gui.text(152, 182, showRngInfoText and "5 - Hide RNG info" or "6 - Show RNG info")
+ gui.text(152, 182, showRngInfoText and "5 - 隐藏 RNG 信息" or "6 - 显示 RNG 信息")
 end
 
 function getTrainerIDs()
@@ -780,8 +780,8 @@ end
 function showTrainerIDs()
  local trainerTID, trainerSID = getTrainerIDs()
 
- gui.text(194, -22, string.format("TID: %d", trainerTID))
- gui.text(194, -11, string.format("SID: %d", trainerSID))
+ gui.text(194, -22, string.format("TID：%d", trainerTID))
+ gui.text(194, -11, string.format("SID：%d", trainerSID))
 end
 
 local prevKeySlot, slotIndex = {}, 0
@@ -804,14 +804,14 @@ function getSlotInput()
  drawArrowLeft(161, -189, leftSlotArrowColor)
  gui.text(169, -189, "3 - 4")
  drawArrowRight(207, -189, rightSlotArrowColor)
- gui.text(212, -189, "Slot: "..slotIndex + 1)
+ gui.text(212, -189, "槽位："..slotIndex + 1)
 
  return slotIndex
 end
 
 function getOffset(offsetType, orderIndex)
- local offsets = {["growth"] = {0,0,0,0,0,0, 1,1,2,3,2,3, 1,1,2,3,2,3, 1,1,2,3,2,3},
-                  ["attack"] = {1,1,2,3,2,3, 0,0,0,0,0,0, 2,3,1,1,3,2, 2,3,1,1,3,2}}
+ local offsets = {["成长"] = {0,0,0,0,0,0, 1,1,2,3,2,3, 1,1,2,3,2,3, 1,1,2,3,2,3},
+                  ["攻击"] = {1,1,2,3,2,3, 0,0,0,0,0,0, 2,3,1,1,3,2, 2,3,1,1,3,2}}
 
  return offsets[offsetType][orderIndex]
 end
@@ -829,7 +829,7 @@ function shinyCheck(PID, trainerTID, trainerSID)
  local shinyTypeValue = bxor(bxor(trainerTID, trainerSID), bxor(lowPID, highPID))
 
  if shinyTypeValue < 8 then
-  return "green", shinyTypeValue == 0 and " (Square)" or " (Star)"
+  return "green", shinyTypeValue == 0 and "（方块）" or "（星星）"
  end
 
  return nil, ""
@@ -868,14 +868,14 @@ function getIVColor(value)
   return "red"
  end
 
- return nil  -- IV value from 6 to 29
+ return nil  -- IV 值从 6 到 29
 end
 
 function showIVsAndHP(ivsValue)
  local hpIV, atkIV, defIV, spAtkIV, spDefIV, spdIV = getIVs(ivsValue)
  local hpType, hpPower = getHPTypeAndPower(hpIV, atkIV, defIV, spAtkIV, spDefIV, spdIV)
 
- gui.text(2, -145, "IVs:")
+ gui.text(2, -145, "个体值：")
  gui.text(32, -145, string.format("%02d", hpIV), getIVColor(hpIV))
  gui.text(44, -145, "/")
  gui.text(50, -145, string.format("%02d", atkIV), getIVColor(atkIV))
@@ -888,26 +888,26 @@ function showIVsAndHP(ivsValue)
  gui.text(116, -145, "/")
  gui.text(122, -145, string.format("%02d", spdIV), getIVColor(spdIV))
 
- gui.text(2, -134, "HPower: "..HPTypeNamesList[hpType + 1].." "..hpPower)
+ gui.text(2, -134, "觉醒力量："..HPTypeNamesList[hpType + 1].." "..hpPower)
 end
 
 function showMoves(moveIndexesList)
- gui.text(2, -101, "Move: "..moveNamesList[moveIndexesList[1] > 468 and 1 or moveIndexesList[1]])
- gui.text(2, -90, "Move: "..moveNamesList[moveIndexesList[2] > 468 and 1 or moveIndexesList[2]])
- gui.text(2, -79, "Move: "..moveNamesList[moveIndexesList[3] > 468 and 1 or moveIndexesList[3]])
- gui.text(2, -68, "Move: "..moveNamesList[moveIndexesList[4] > 468 and 1 or moveIndexesList[4]])
+ gui.text(2, -101, "招式："..moveNamesList[moveIndexesList[1] > 468 and 1 or moveIndexesList[1]])
+ gui.text(2, -90, "招式："..moveNamesList[moveIndexesList[2] > 468 and 1 or moveIndexesList[2]])
+ gui.text(2, -79, "招式："..moveNamesList[moveIndexesList[3] > 468 and 1 or moveIndexesList[3]])
+ gui.text(2, -68, "招式："..moveNamesList[moveIndexesList[4] > 468 and 1 or moveIndexesList[4]])
 end
 
 function showPP(movePPList)
- gui.text(120, -101, "PP: "..(movePPList[1] < 100 and movePPList[1] or 0))
- gui.text(120, -90, "PP: "..(movePPList[2] < 100 and movePPList[2] or 0))
- gui.text(120, -79, "PP: "..(movePPList[3] < 100 and movePPList[3] or 0))
- gui.text(120, -68, "PP: "..(movePPList[4] < 100 and movePPList[4] or 0))
+ gui.text(120, -101, "PP："..(movePPList[1] < 100 and movePPList[1] or 0))
+ gui.text(120, -90, "PP："..(movePPList[2] < 100 and movePPList[2] or 0))
+ gui.text(120, -79, "PP："..(movePPList[3] < 100 and movePPList[3] or 0))
+ gui.text(120, -68, "PP："..(movePPList[4] < 100 and movePPList[4] or 0))
 end
 
 function showPokemonIDs(trainerTID, trainerSID)
- gui.text(194, -22, string.format("TID: %d", trainerTID))
- gui.text(194, -11, string.format("SID: %d", trainerSID))
+ gui.text(194, -22, string.format("TID：%d", trainerTID))
+ gui.text(194, -11, string.format("SID：%d", trainerSID))
 end
 
 function showInfo(pidAddr)
@@ -918,12 +918,12 @@ function showInfo(pidAddr)
  local movePP = {}
  local ivsPart = {}
 
- local growthOffset = getOffset("growth", orderIndex) * 32
- local attacksOffset = getOffset("attack", orderIndex) * 32
+ local growthOffset = getOffset("成长", orderIndex) * 32
+ local attacksOffset = getOffset("攻击", orderIndex) * 32
  local prng = checksum
 
- for i = 1, getOffset("growth", orderIndex) do
-  prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 cycles
+ for i = 1, getOffset("成长", orderIndex) do
+  prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 个周期
  end
 
  prng = LCRNG(prng, 0x41C64E6D, 0x6073)
@@ -934,25 +934,25 @@ function showInfo(pidAddr)
 
  local OTID, OTSID = nil, nil
 
- if mode[index] == "Pokemon Info" then
+ if mode[index] == "宝可梦信息" then
   prng = LCRNG(prng, 0x41C64E6D, 0x6073)
   OTID = bxor(read16Bit(pidAddr + growthOffset + 0xC), rshift(prng, 16))
   prng = LCRNG(prng, 0x41C64E6D, 0x6073)
   OTSID = bxor(read16Bit(pidAddr + growthOffset + 0xE), rshift(prng, 16))
  else
-  prng = LCRNG(prng, 0xC2A29A69, 0xE97E7B6A)  -- 2 cycles
+  prng = LCRNG(prng, 0xC2A29A69, 0xE97E7B6A)  -- 2 个周期
  end
 
  local shinyTypeTextColor, shinyType = shinyCheck(pokemonPID, OTID, OTSID)
 
- prng = LCRNG(prng, 0x807DBCB5, 0x52713895)  -- 3 cycles
+ prng = LCRNG(prng, 0x807DBCB5, 0x52713895)  -- 3 个周期
  local abilityIndex = bxor(read16Bit(pidAddr + growthOffset + 0x14), rshift(prng, 16))
  abilityIndex = getBits(abilityIndex, 8, 8)
 
  prng = checksum
 
- for i = 1, getOffset("attack", orderIndex) do
-  prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 cycles
+ for i = 1, getOffset("攻击", orderIndex) do
+  prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 个周期
  end
 
  prng = LCRNG(prng, 0x41C64E6D, 0x6073)
@@ -973,7 +973,7 @@ function showInfo(pidAddr)
  movePP[3] = getBits(movePPAux, 0, 8)
  movePP[4] = getBits(movePPAux, 8, 8)
 
- prng = LCRNG(prng, 0x807DBCB5, 0x52713895)  -- 3 cycles
+ prng = LCRNG(prng, 0x807DBCB5, 0x52713895)  -- 3 个周期
  ivsPart[1] = bxor(read16Bit(pidAddr + attacksOffset + 0x18), rshift(prng, 16))
  prng = LCRNG(prng, 0x41C64E6D, 0x6073)
  ivsPart[2] = bxor(read16Bit(pidAddr + attacksOffset + 0x1A), rshift(prng, 16))
@@ -982,22 +982,22 @@ function showInfo(pidAddr)
  local isEgg = getBits(ivsValue, 30, 1) == 1
  local natureIndex = (pokemonPID % 25) + 1
 
- if mode[index] ~= "Breeding" or isEgg then
-  gui.text(2, -189, "Species: "..speciesNamesList[(speciesDexIndex > 493 or speciesDexIndex < 1) and 1 or speciesDexIndex])
-  gui.text(2, -178, "PID:")
+ if mode[index] ~= "培育" or isEgg then
+  gui.text(2, -189, "种类："..speciesNamesList[(speciesDexIndex > 493 or speciesDexIndex < 1) and 1 or speciesDexIndex])
+  gui.text(2, -178, "PID：")
   gui.text(32, -178, string.format("%08X%s", pokemonPID, shinyType), shinyTypeTextColor)
-  gui.text(2, -167, "Nature: "..natureNamesList[(natureIndex > 25 or natureIndex == nil) and 1 or natureIndex])
-  gui.text(2, -156, string.format("Ability: %s (%s)", abilityNamesList[(abilityIndex > 123 or abilityIndex < 1) and 1 or abilityIndex],
+  gui.text(2, -167, "性格："..natureNamesList[(natureIndex > 25 or natureIndex == nil) and 1 or natureIndex])
+  gui.text(2, -156, string.format("特性：%s (%s)", abilityNamesList[(abilityIndex > 123 or abilityIndex < 1) and 1 or abilityIndex],
            abilityIndex == pokemonAbilities[(speciesDexIndex > 493 or speciesDexIndex < 1) and 1 or speciesDexIndex][1] and "0" or "1"))
 
   showIVsAndHP(ivsValue)
 
-  gui.text(2, -123, "Held item: "..itemNamesList[(heldItemIndex > 537) and 1 or heldItemIndex])
+  gui.text(2, -123, "携带道具："..itemNamesList[(heldItemIndex > 537) and 1 or heldItemIndex])
 
   showMoves(move)
   showPP(movePP)
 
-  if mode[index] == "Pokemon Info" then
+  if mode[index] == "宝可梦信息" then
    showPokemonIDs(OTID, OTSID)
   end
  end
@@ -1016,7 +1016,7 @@ function getBikeMod()
 end
 
 function setMovementRate(matr)
- local rate = 40  -- Base wild encounter rate is 40
+ local rate = 40  -- 基础野生遭遇率为 40
  rate = rate + getHighGrassMod(matr)
  rate = rate + getBikeMod()
 
@@ -1035,14 +1035,14 @@ function getLeadAbility(pidAddr)
  local checksum = read16Bit(pidAddr + 0x6)
  local orderIndex = (rshift(band(pokemonPID, 0x3E000), 0xD) % 24) + 1
 
- local growthOffset = getOffset("growth", orderIndex) * 32
+ local growthOffset = getOffset("成长", orderIndex) * 32
  local prng = checksum
 
- for i = 1, getOffset("growth", orderIndex) do
-  prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 cycles
+ for i = 1, getOffset("成长", orderIndex) do
+  prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 个周期
  end
 
- prng = LCRNG(prng, 0x9B355305, 0xAFC58AC9)  -- 7 cycles
+ prng = LCRNG(prng, 0x9B355305, 0xAFC58AC9)  -- 7 个周期
  local abilityIndex = bxor(read16Bit(pidAddr + growthOffset + 0x14), rshift(prng, 16))
 
  return getBits(abilityIndex, 8, 8)
@@ -1051,21 +1051,21 @@ end
 function getAbilityEffectType(pidAddr)
  local partyLeadAbility = getLeadAbility(pidAddr)
 
- if partyLeadAbility == 0x23 or partyLeadAbility == 0x47 or partyLeadAbility == 0x63 then  -- Illuminate / Arena Trap / No Guard
+ if partyLeadAbility == 0x23 or partyLeadAbility == 0x47 or partyLeadAbility == 0x63 then  -- 发光 / 沙穴 / 无防守
   return 2
- elseif partyLeadAbility == 0x8 then  -- Sand Veil
+ elseif partyLeadAbility == 0x8 then  -- 沙隐
   local weatherIndex = read8Bit(read32Bit(pidPointerAddr) + 0xE2DA)
 
-  if weatherIndex == 0xA then  -- Sand Veil effect is active only during the sandstorm
+  if weatherIndex == 0xA then  -- 沙隐效果仅在沙暴中生效
    return 1
   end
- elseif partyLeadAbility == 0x51 then  -- Snow Cloak
+ elseif partyLeadAbility == 0x51 then  -- 雪隐
   local weatherIndex = read8Bit(read32Bit(pidPointerAddr) + 0xE2DA)
 
-  if weatherIndex >= 0x5 and weatherIndex <= 0x7 then  -- Snow Cloak effect is active only during the snowing and the snowstorms
+  if weatherIndex >= 0x5 and weatherIndex <= 0x7 then  -- 雪隐效果仅在下雪和暴风雪时生效
    return 1
   end
- elseif partyLeadAbility == 0x1 or partyLeadAbility == 0x49 or partyLeadAbility == 0x5F then  -- Stench / White Smoke / Quick Feet
+ elseif partyLeadAbility == 0x1 or partyLeadAbility == 0x49 or partyLeadAbility == 0x5F then  -- 恶臭 / 白色烟雾 / 飞毛腿
   return 1
  end
 
@@ -1098,14 +1098,14 @@ function getLeadHeldItem(pidAddr)
  local checksum = read16Bit(pidAddr + 0x6)
  local orderIndex = (rshift(band(pokemonPID, 0x3E000), 0xD) % 24) + 1
 
- local growthOffset = getOffset("growth", orderIndex) * 32
+ local growthOffset = getOffset("成长", orderIndex) * 32
  local prng = checksum
 
- for i = 1, getOffset("growth", orderIndex) do
-  prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 cycles
+ for i = 1, getOffset("成长", orderIndex) do
+  prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 个周期
  end
 
- prng = LCRNG(prng, 0xC2A29A69, 0xE97E7B6A)  -- 2 cycles
+ prng = LCRNG(prng, 0xC2A29A69, 0xE97E7B6A)  -- 2 个周期
  return bxor(read16Bit(pidAddr + growthOffset + 0xA), rshift(prng, 16))
 end
 
@@ -1185,8 +1185,8 @@ function showEncounterMissingSteps(pidAddr)
  end
 
  gui.box(1, -48, 176, -26, "#0000007F", "#0000007F")
- gui.text(2, -46, ("Encounters cooldown? "..(coolDownSteps == 0 and "No" or "Yes")))
- gui.text(2, -35, ("Steps for wild encounter: "..encounterMissingSteps))
+ gui.text(2, -46, ("遭遇冷却？ "..(coolDownSteps == 0 and "否" or "是")))
+ gui.text(2, -35, ("距离野生遭遇的步数："..encounterMissingSteps))
 end
 
 function showPartyEggInfo(pidAddr)
@@ -1218,7 +1218,7 @@ function getRoamerSlotInput()
  drawArrowLeft(161, -189, leftRoamerSlotArrowColor)
  gui.text(169, -189, "3 - 4")
  drawArrowRight(207, -189, rightRoamerSlotArrowColor)
- gui.text(212, -189, "Slot: "..roamerSlotIndex + 1)
+ gui.text(212, -189, "槽位："..roamerSlotIndex + 1)
 
  return roamerSlotIndex > 1 and roamerSlotIndex + 1 or roamerSlotIndex
 end
@@ -1235,22 +1235,22 @@ function getRoamerInfo(roamerAddr)
   local roamerHP = read16Bit(roamerAddr + 0xE)
   local roamerLevel = read8Bit(roamerAddr + 0x10)
   local roamerStatusIndex = read8Bit(roamerAddr + 0x11)
-  local roamerStatus = statusConditionNamesList[1]  -- No altered status condition by default
+  local roamerStatus = statusConditionNamesList[1]  -- 默认无异常状态
   local roamerNatureIndex = (roamerPID % 25) + 1
   local playerMapIndexAddr = read32Bit(trainerIDsPointerAddr) + 0x1294
   local playerMapIndex = read16Bit(playerMapIndexAddr)
 
-  if roamerStatusIndex > 0 and roamerStatusIndex < 0x8 then  -- Sleeping status condition
+  if roamerStatusIndex > 0 and roamerStatusIndex < 0x8 then  -- 睡眠状态
    roamerStatus = statusConditionNamesList[2]
-  elseif roamerStatusIndex == 0x8 then  -- Poisoned status condition
+  elseif roamerStatusIndex == 0x8 then  -- 中毒状态
    roamerStatus = statusConditionNamesList[3]
-  elseif roamerStatusIndex == 0x10 then  -- Burned status condition
+  elseif roamerStatusIndex == 0x10 then  -- 灼伤状态
    roamerStatus = statusConditionNamesList[4]
-  elseif roamerStatusIndex == 0x20 then  -- Freezed status condition
+  elseif roamerStatusIndex == 0x20 then  -- 冰冻状态
    roamerStatus = statusConditionNamesList[5]
-  elseif roamerStatusIndex == 0x40 then  -- Paralyzed status condition
+  elseif roamerStatusIndex == 0x40 then  -- 麻痹状态
    roamerStatus = statusConditionNamesList[6]
-  elseif roamerStatusIndex == 0x80 then  -- Badly poisoned status condition
+  elseif roamerStatusIndex == 0x80 then  -- 剧毒状态
    roamerStatus = statusConditionNamesList[7]
   end
 
@@ -1268,23 +1268,23 @@ function showRoamerInfo(roamerAddr)
        roamerSpeciesIndex, roamerHP, roamerLevel, roamerStatus, roamerNatureIndex, playerMapIndex = getRoamerInfo(roamerAddr)
 
  if isRoamerActive then
-  gui.text(2, -189, "Active Roamer? Yes")
-  gui.text(2, -178, "Species: "..speciesNamesList[roamerSpeciesIndex])
-  gui.text(2, -167, "PID:")
+  gui.text(2, -189, "存在活跃游走宝可梦？ 是")
+  gui.text(2, -178, "种类："..speciesNamesList[roamerSpeciesIndex])
+  gui.text(2, -167, "PID：")
   gui.text(32, -167, string.format("%08X%s", roamerPID, roamerShinyType), roamerShinyTypeTextColor)
-  gui.text(2, -156, "Nature: "..natureNamesList[roamerNatureIndex])
+  gui.text(2, -156, "性格："..natureNamesList[roamerNatureIndex])
   showIVsAndHP(roamerIVsValue)
-  gui.text(2, -123, "Level: "..roamerLevel)
-  gui.text(2, -112, "HP: "..roamerHP)
-  gui.text(2, -101, "Status condition: "..roamerStatus)
-  gui.text(2, -90, "Current position:")
+  gui.text(2, -123, "等级："..roamerLevel)
+  gui.text(2, -112, "HP："..roamerHP)
+  gui.text(2, -101, "异常状态："..roamerStatus)
+  gui.text(2, -90, "当前位置：")
   gui.text(2, -79, locationNamesList[roamerMapIndex + 1], roamerMapIndex == playerMapIndex and "green" or nil)
  else
-  gui.text(2, -189, "Active Roamer? No")
+  gui.text(2, -189, "存在活跃游走宝可梦？ 否")
  end
 end
 
-local prevKeyInfo, infoIndex, infoMode = {}, 1, {"Gift", "Party", "Party Stats", "Box", "Box Stats"}
+local prevKeyInfo, infoIndex, infoMode = {}, 1, {"礼物", "同行", "同行状态", "盒子", "盒子状态"}
 
 function getInfoInput()
  local leftInfoArrowColor = "gray"
@@ -1301,7 +1301,7 @@ function getInfoInput()
 
  prevKeyInfo = key
  gui.box(1, 154, 134, 176, "#0000007F", "#0000007F")
- gui.text(2, 156, "Info Mode: "..infoMode[infoIndex])
+ gui.text(2, 156, "信息模式："..infoMode[infoIndex])
  drawArrowLeft(2, 167, leftInfoArrowColor)
  gui.text(10, 167, "3 - 4")
  drawArrowRight(48, 167, rightInfoArrowColor)
@@ -1313,31 +1313,31 @@ function showPokemonInfo(pidAddr)
  local currBoxIndexAddr = pidAddr + 0x19F20
  local currBoxIndex = read8Bit(currBoxIndexAddr)
 
- if infoMode[infoIndex] == "Gift" then
+ if infoMode[infoIndex] == "礼物" then
   local partySlotsCounterAddr = pidAddr + 0xD090
   local partySlotsCounter = read8Bit(partySlotsCounterAddr) - 1
   local lastPartySlotAddr = partyAddr + (partySlotsCounter * 0xEC)
 
   showInfo(lastPartySlotAddr)
- elseif infoMode[infoIndex] == "Party" then
+ elseif infoMode[infoIndex] == "同行" then
   local partySelectedSlotIndexAddr = pidAddr + 0x4F379 + koreanOffset
   local partySelectedSlotIndex = read8Bit(partySelectedSlotIndexAddr)
   local partySelectedPokemonAddr = partyAddr + (partySelectedSlotIndex * 0xEC)
 
   showInfo(partySelectedPokemonAddr)
- elseif infoMode[infoIndex] == "Party Stats" then
+ elseif infoMode[infoIndex] == "同行状态" then
   local partyStatsSelectedSlotIndexAddr = pidAddr + 0x35558 + koreanOffset
   local partyStatsSelectedSlotIndex = read8Bit(partyStatsSelectedSlotIndexAddr)
   local pokemonPartyStatsAddr = partyAddr + (partyStatsSelectedSlotIndex * 0xEC)
 
   showInfo(pokemonPartyStatsAddr)
- elseif infoMode[infoIndex] == "Box" then
+ elseif infoMode[infoIndex] == "盒子" then
   local boxSelectedSlotIndexAddr = pidAddr + 0x4E7EB + koreanOffset
   local boxSelectedSlotIndex = read8Bit(boxSelectedSlotIndexAddr)
   local boxSelectedPokemonAddr = boxAddr + (0x88 * boxSelectedSlotIndex) + ((0xFF0 * currBoxIndex))
 
   showInfo(boxSelectedPokemonAddr)
- elseif infoMode[infoIndex] == "Box Stats" then
+ elseif infoMode[infoIndex] == "盒子状态" then
   local boxStatsSelectedSlotIndexAddr = pidAddr + 0x4E91C + koreanOffset
   local boxStatsSelectedSlotIndex = read8Bit(boxStatsSelectedSlotIndexAddr)
   local pokemonBoxStatsAddr = boxAddr + (0x88 * boxStatsSelectedSlotIndex) + ((0xFF0 * currBoxIndex))
@@ -1350,18 +1350,18 @@ function createStateFile(statesFileName, stateSlot)
  os.execute("mkdir states")
  local statesFile = io.open(statesFileName, "w")
 
- if statesFile then  -- Check if the state file has been created correctly
+ if statesFile then  -- 检查状态文件是否已正确创建
   for slotNumber = 1, 10 do
-   if slotNumber == stateSlot then  -- Write only in the line of the saved slot
+   if slotNumber == stateSlot then  -- 只写入已保存槽位所在行
     statesFile:write(string.format("%08X %08X %d %d %d %s %08X %s\n", initialSeed, tempCurrentSeed, advances, mtCounter,
                                    hitDelay, (hitDate:gsub("\n", " ")), lastCurrentSeedBeforeBattle, tostring(battleStartJumpFlag)))
-   else  -- Fill with empty data the lines of not saved state
+   else  -- 用空数据填充未保存状态的行
     statesFile:write("00000000 00000000 0 0 0 2000/01/01 00:00:00 00000000 false\n")
    end
   end
 
   statesFile:close()
-  gui.text(2, 145, string.format("Saved state on slot %s", stateSlot))
+  gui.text(2, 145, string.format("已保存状态到槽位 %s", stateSlot))
  end
 end
 
@@ -1371,7 +1371,7 @@ function writeStateFile(statesFileName, stateSlot)
  local lines = ""
 
  for line in statesFile:lines() do
-  if line_num == stateSlot then  -- Overwrite only the line of the saved slot
+  if line_num == stateSlot then  -- 仅覆盖已保存槽位所在行
    line = string.format("%08X %08X %d %d %d %s %08X %s", initialSeed, tempCurrentSeed, advances, mtCounter,
                         hitDelay, (hitDate:gsub("\n", " ")), lastCurrentSeedBeforeBattle, tostring(battleStartJumpFlag))
   end
@@ -1384,15 +1384,15 @@ function writeStateFile(statesFileName, stateSlot)
  statesFile = io.open(statesFileName, "w")
  statesFile:write(lines)
  statesFile:close()
- gui.text(2, 145, string.format("Saved state on slot %s", stateSlot))
+ gui.text(2, 145, string.format("已保存状态到槽位 %s", stateSlot))
 end
 
 function writeSaveStateValues(statesFileName, stateSlot)
  local statesFileCheck = io.open(statesFileName, "r")
 
- if not statesFileCheck then  -- Check if the states file does not exist
+ if not statesFileCheck then  -- 检查状态文件是否不存在
   createStateFile(statesFileName, stateSlot)
- else  -- States file already exists
+ else  -- 状态文件已存在
   statesFileCheck:close()
   writeStateFile(statesFileName, stateSlot)
  end
@@ -1406,7 +1406,7 @@ function setSaveStateValues(statesFileName, stateSlot)
   local values = {}
 
   for line in statesFile:lines() do
-   if line_num == stateSlot then  -- Load values from the line of the loaded slot only
+   if line_num == stateSlot then  -- 仅从已读取槽位所在行加载值
     for value in line:gmatch("%S+") do
      table.insert(values, value)
     end
@@ -1430,10 +1430,10 @@ function setSaveStateValues(statesFileName, stateSlot)
   prevMTSeed = read32Bit(mtSeedAddr)
 
   if prevInitialSeed ~= initialSeed and initialSeed ~= 0 then
-   print(string.format("Initial Seed: %08X", initialSeed))
+   print(string.format("初始种子：%08X", initialSeed))
   end
 
-  gui.text(2, 145, string.format("Loaded State %s", stateSlot))
+  gui.text(2, 145, string.format("已读取状态 %s", stateSlot))
  end
 end
 
@@ -1447,9 +1447,9 @@ function getSaveStateInput()
   if (key[Fbuttons[slotNumber]] and not prevStateKey[Fbuttons[slotNumber]]) then
    local statesFileName = string.format("states/%s_%s_states_values.txt", gameVersion, string.gsub(gameLanguage, "/", "_"))
 
-   if (key["shift"]) then  -- Check if a save state is being created
+   if (key["shift"]) then  -- 检查是否正在创建即时存档
     writeSaveStateValues(statesFileName, slotNumber)
-   else  -- Loading a state
+   else  -- 正在读取状态
     setSaveStateValues(statesFileName, slotNumber)
    end
 
@@ -1469,24 +1469,24 @@ function main()
   showRngInfo()
   local pidAddr = read32Bit(pidPointerAddr)
 
-  if mode[index] ~= "None" then
+  if mode[index] ~= "无" then
    getRngInfoInput()
 
-   if mode[index] ~= "Pokemon Info" then
+   if mode[index] ~= "宝可梦信息" then
     showTrainerIDs()
    end
   end
 
-  if mode[index] == "Capture" then
+  if mode[index] == "捕获" then
    local enemyAddr = pidAddr + 0x58E3C + koreanOffset
    showInfo(enemyAddr + (0xEC * getSlotInput()))
    showEncounterMissingSteps(pidAddr)
-  elseif mode[index] == "Breeding" then
+  elseif mode[index] == "培育" then
    showPartyEggInfo(pidAddr)
-  elseif mode[index] == "Roamer" then
+  elseif mode[index] == "游走宝可梦" then
    local roamerAddr = pidAddr + 0x14FE8
    showRoamerInfo(roamerAddr + (0x14 * getRoamerSlotInput()))
-  elseif mode[index] == "Pokemon Info" then
+  elseif mode[index] == "宝可梦信息" then
    getInfoInput()
    showPokemonInfo(pidAddr)
   end

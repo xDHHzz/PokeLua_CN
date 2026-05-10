@@ -12,17 +12,17 @@ local JUMP_DATA = {
  {0x40000001, 0x90000000}, {0x80000001, 0x20000000}, {0x1, 0x40000000}, {0x1, 0x80000000}}
 
 local natureNamesList = {
- "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
- "Bold", "Docile", "Relaxed", "Impish", "Lax",
- "Timid", "Hasty", "Serious", "Jolly", "Naive",
- "Modest", "Mild", "Quiet", "Bashful", "Rash",
- "Calm", "Gentle", "Sassy", "Careful", "Quirky"}
+ "勤奋", "怕寂寞", "勇敢", "固执", "顽皮",
+ "大胆", "坦率", "悠闲", "淘气", "乐天",
+ "胆小", "急躁", "认真", "爽朗", "天真",
+ "内敛", "慢吞吞", "冷静", "害羞", "马虎",
+ "温和", "温顺", "自大", "慎重", "浮躁"}
 
 local HPTypeNamesList = {
- "Fighting", "Flying", "Poison", "Ground",
- "Rock", "Bug", "Ghost", "Steel",
- "Fire", "Water", "Grass", "Electric",
- "Psychic", "Ice", "Dragon", "Dark"}
+ "格斗", "飞行", "毒", "地面",
+ "岩石", "虫", "幽灵", "钢",
+ "火", "水", "草", "电",
+ "超能力", "冰", "龙", "恶"}
 
 local initialSeed, tempCurrentSeed, advances
 
@@ -97,7 +97,7 @@ function getPID(seed)
  local trainerID = 31121
  local trainerSID = 0
 
- repeat  -- Shiny lock reroll
+ repeat  -- 异色锁重掷
   seed = LCRNG(seed, 0x343FD, 0x269EC3)
   highPID = seed >> 16
   seed = LCRNG(seed, 0x343FD, 0x269EC3)
@@ -113,11 +113,11 @@ function getHPTypeAndPower(hpIV, atkIV, defIV, spAtkIV, spDefIV, spdIV)
  local hpPower = (((((hpIV >> 1) & 1) + (2 * ((atkIV >> 1) & 1)) + (4 * ((defIV >> 1) & 1)) + (8 * ((spdIV >> 1) & 1))
                  + (16 * ((spAtkIV >> 1) & 1)) + (32 * ((spDefIV >> 1) & 1))) * 40) // 63) + 30
 
- return string.format("HPower: %s %02d", HPTypeNamesList[hpType + 1], hpPower)
+ return string.format("觉醒力量：%s %02d", HPTypeNamesList[hpType + 1], hpPower)
 end
 
 function getPikachuInfo(seed)
- seed = LCRNG(seed, 0xA9FC6809, 0x1E278E7A)  -- 2 cycles
+ seed = LCRNG(seed, 0xA9FC6809, 0x1E278E7A)  -- 2 个周期
  seed = LCRNG(seed, 0x343FD, 0x269EC3)
  local iv1 = seed >> 16
  seed = LCRNG(seed, 0x343FD, 0x269EC3)
@@ -127,7 +127,7 @@ function getPikachuInfo(seed)
  local ability = (seed >> 16) & 1
  local pokemonPID = getPID(seed)
  local natureIndex = pokemonPID % 25
- local info = string.format("PID: %08X\nNature: %s\nIVs: %s", pokemonPID, natureNamesList[natureIndex + 1], table.concat(ivs, "/"))
+ local info = string.format("PID：%08X\n性格：%s\n个体值：%s", pokemonPID, natureNamesList[natureIndex + 1], table.concat(ivs, "/"))
  local hpTypeAndPower = getHPTypeAndPower(ivs[1], ivs[2], ivs[3], ivs[4], ivs[5], ivs[6])
  info = info.."\n"..hpTypeAndPower
 
@@ -147,7 +147,7 @@ function onScriptUpdate()
  getInitialSeeding(currentSeed)
  advances = advances + LCRNGDistance(tempCurrentSeed, currentSeed)
  local pikachuInfo = getPikachuInfo(currentSeed)
- local text = string.format("Visual Advances: %d\n\nInitial Seed: %08X\nCurrent Seed: %08X\nAdvances: %d\n\nPikachu Info:\n%s",
+ local text = string.format("画面推进数：%d\n\n初始种子：%08X\n当前种子：%08X\n推进数：%d\n\n皮卡丘信息：\n%s",
                             GetFrameCount(), initialSeed, currentSeed, advances, pikachuInfo)
  SetScreenText(text)
 end
