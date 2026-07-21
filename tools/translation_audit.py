@@ -15,6 +15,7 @@ import argparse
 import csv
 from collections import defaultdict
 from dataclasses import dataclass
+import hashlib
 import os
 from pathlib import Path
 import posixpath
@@ -260,6 +261,108 @@ UNCHANGED_ENGLISH_ALLOWLIST = {
     "C-Gear": "official product/system name",
     "MissingNo.": "official glitch name",
 }
+
+# The approved corpus is bound to the immutable English base token ordinal as
+# well as its value/reason.  A value that is technical in one place (for example
+# ``orange`` as a GUI color) is not thereby approved in an arbitrary label.
+LUA_UNCHANGED_CONTEXT_MANIFEST = {
+    "Gen 1/BizHawk/RBGY_Bot_BizHawk.lua": "4014538751a846edc1b267d0e516e68e796581807623c104c40427be3e755753",
+    "Gen 1/VBA/RBGY_Bot_VBA.lua": "cdc0af7bd5b8bfc9751da4ca429aae348633de018c0222522306746802e3243e",
+    "Gen 3/Dolphin/Ageto_Celebi_RNG_Dolphin.lua": "ca707b1a5299287f5c1b65a489501d65cf9288beabc136e7ce73052ca81b8734",
+    "Gen 3/Dolphin/Channel_RNG_Dolphin.lua": "51efd6aa7c750682a56138f70deae01de9deb17f1c963527384f3e7dcfcfe793",
+    "Gen 3/Dolphin/Colo_Pikachu_RNG_Dolphin.lua": "ca707b1a5299287f5c1b65a489501d65cf9288beabc136e7ce73052ca81b8734",
+    "Gen 3/Dolphin/Colosseum_Light_RNG_Dolphin.lua": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "Gen 3/Dolphin/Colosseum_RNG_Dolphin.lua": "f44881df73610c504e79960e000ba201db8d5db5b593edc15623352e757b1fdd",
+    "Gen 3/Dolphin/XD_RNG_Dolphin.lua": "f44881df73610c504e79960e000ba201db8d5db5b593edc15623352e757b1fdd",
+    "Gen 3/mGBA/E_RNG_mGBA.lua": "e629681510e9dd7c67bab7be11a4ea1b593ec2459937ae6750f3777bcb36b369",
+    "Gen 3/mGBA/FRLG_RNG_mGBA.lua": "1af8f37c65df2596ab0b3fdfbdd0d20fe3fa1360751e4191181e2f3e254f770d",
+    "Gen 3/mGBA/RS_RNG_Checksums_mGBA.lua": "ef669b72ac4189fedfa8cd0db46eb691d15553e5badac55079f10a60d0c1da5b",
+    "Gen 3/mGBA/RS_RNG_mGBA.lua": "712dafa40f8c2c7f81809adab1d524b11b71b235cde70f0933e8926bbcbb6929",
+    "Gen 4/BizHawk/DP_RNG_BizHawk.lua": "31675129c06f47a442614bc04b515e308683ea4671ea9b8b94dc719e52512076",
+    "Gen 4/BizHawk/HGSS_RNG_BizHawk.lua": "b61b89825ff47493c78da1129f31ec3677eb2f0b6c0176b6a64cf587a5ff6584",
+    "Gen 4/BizHawk/Pt_RNG_BizHawk.lua": "b86df88def10db6cb535ce743fe8ce88b748aa2def2827a542a8d22a49647d0b",
+    "Gen 4/DeSmuMe/DP_RNG_DeSmuMe.lua": "0f24301746b03d739c0fcc30cac1fd4e5fa3d89548be663000c99fc5b1d8f23b",
+    "Gen 4/DeSmuMe/HGSS_RNG_DeSmuMe.lua": "46aaf6a4c705a697954c653e2724ce9b79494239ab3a92a2bb3b97828a351f8e",
+    "Gen 4/DeSmuMe/Pt_RNG_DeSmuMe.lua": "b07b5f7662c664ce72fdd697f4a35d5490aee51c0e9902aad3479cc07a0e8743",
+    "Gen 5/BizHawk/B2W2_RNG_BizHawk.lua": "74c244a4f4a9f93f39242f0fd62438a918fab11f4434ae626d3f048127e06867",
+    "Gen 5/BizHawk/BW_RNG_BizHawk.lua": "e430c06b3e5f8dc6ac152e7b55e510f0091fe3e25aff5345d06e45eef9fe0a90",
+    "Gen 5/DeSmuMe/B2W2_RNG_DeSmuMe.lua": "9132dbc082745ee7b24721c92f382b2565792f79df85288385c3204d62a4288d",
+    "Gen 5/DeSmuMe/BW_RNG_DeSmuMe.lua": "58cd39da7ced1a63c0f52e938596a28d1f5ecbf9d5b47fe822101aacc71ae5cd",
+}
+
+README_VISIBLE_ENGLISH_ALLOWLIST = {
+    **{
+        value: "project/product name"
+        for value in (
+            "PokeLua",
+            "Real96/PokeLua",
+            "Pokemon",
+            "PokemonRNG",
+            "Devon",
+            "Studios",
+            "Discord",
+            "BizHawk",
+            "C-Gear",
+            "DeSmuMe",
+            "Dolphin",
+            "Lua",
+            "mGBA",
+            "PokeFinder",
+            "VBA-ReRecording",
+        )
+    },
+    **{
+        value: "game/version abbreviation"
+        for value in (
+            "BW",
+            "BW/B2W2",
+            "C/XD",
+            "DP/Pt/HGSS",
+            "FRLG",
+            "FRLG/E",
+            "GS/C",
+            "RBG/Y",
+            "RS",
+            "RS/FRLG/E",
+        )
+    },
+    **{
+        value: "external UI/keyboard text"
+        for value in ("F", "F1", "Loaded", "Restart", "Saved", "Shift", "State", "n")
+    },
+    **{
+        value: "version/file name"
+        for value in ("0.9.11_x86_dev+", "lua5.1.dll", "lua51.dll")
+    },
+    "RNG": "technical abbreviation",
+    "TID": "technical abbreviation",
+    **{
+        value: "contributor/community identifier"
+        for value in (
+            "Admiral_Fish",
+            "Bond697",
+            "EzPzStreamz",
+            "Kaphotics",
+            "Lincoln-LM",
+            "MKDasher",
+            "OmegaDonut",
+            "SciresM",
+            "Shao",
+            "StarfBerry",
+            "SwareJonge",
+            "Zari",
+            "amab",
+            "bumba",
+            "wwwwwwzx",
+            "xDHHzz",
+            "zaksabeast",
+            "zep715",
+        )
+    },
+}
+
+README_VISIBLE_CONTEXT_DIGEST = "36c805bd4bea99d8aef43f39e85519c8f422f83898a265ce4643870d5c1513a4"
+_MARKDOWN_VISIBLE_ASCII_TOKEN_RE = re.compile(r"[A-Za-z0-9]+(?:[._/+:-][A-Za-z0-9]+)*\+?")
 
 
 def _long_bracket_end(source: str, start: int) -> tuple[int, bool] | None:
@@ -941,6 +1044,16 @@ def _report_duplicate_divergence(states: Iterable[_FileState], errors: list[str]
     return diverged
 
 
+def _stable_context_digest(entries: Iterable[tuple[int, str, str]]) -> str:
+    digest = hashlib.sha256()
+    for ordinal, value, reason in entries:
+        for field in (str(ordinal), value, reason):
+            encoded = field.encode("utf-8")
+            digest.update(len(encoded).to_bytes(8, "big"))
+            digest.update(encoded)
+    return digest.hexdigest()
+
+
 def _unchanged_english_findings(
     states: Iterable[_FileState],
 ) -> tuple[list[str], list[str]]:
@@ -952,7 +1065,8 @@ def _unchanged_english_findings(
         char_map_spans = [
             (table.start, table.end) for table in state.current_tables if table.semantic_group == "charMap"
         ]
-        for base_token, current_token in zip(base_tokens, current_tokens):
+        approved: list[tuple[int, str, str, str]] = []
+        for ordinal, (base_token, current_token) in enumerate(zip(base_tokens, current_tokens)):
             if base_token.value != current_token.value or not _ASCII_LETTER_RE.search(current_token.value):
                 continue
             if any(start < current_token.start < end for start, end in char_map_spans):
@@ -965,17 +1079,98 @@ def _unchanged_english_findings(
                     f"{location}: unapproved unchanged English {current_token.value!r}"
                 )
             else:
-                warnings.append(
-                    f"{location}: retained unchanged English {current_token.value!r} ({reason})"
-                )
+                approved.append((ordinal, current_token.value, reason, location))
+
+        path = state.relative_path.as_posix()
+        actual_digest = _stable_context_digest(
+            (ordinal, value, reason) for ordinal, value, reason, _location in approved
+        )
+        expected_digest = LUA_UNCHANGED_CONTEXT_MANIFEST.get(path)
+        context_matches = expected_digest == actual_digest and expected_digest is not None
+        if not context_matches and (approved or expected_digest is not None):
+            values = sorted({value for _ordinal, value, _reason, _location in approved})
+            errors.append(
+                f"{path}: unapproved unchanged English context inventory {values!r} "
+                f"(expected {expected_digest or 'no manifest'}, got {actual_digest})"
+            )
+            continue
+        for _ordinal, value, reason, location in approved:
+            warnings.append(
+                f"{location}: retained unchanged English {value!r} ({reason})"
+            )
     return errors, warnings
 
 
-def _unchanged_english_warnings(states: Iterable[_FileState]) -> list[str]:
-    """Compatibility wrapper returning only classified retained inventory."""
+def _mask_markdown_destinations(source: str) -> str:
+    masked = list(source)
 
-    _errors, warnings = _unchanged_english_findings(states)
-    return warnings
+    def mask(start: int, end: int) -> None:
+        for position in range(start, end):
+            if masked[position] not in "\r\n":
+                masked[position] = " "
+
+    index = 0
+    while index < len(source):
+        if source.startswith("](", index):
+            cursor = index + 2
+            depth = 1
+            while cursor < len(source) and depth:
+                if source[cursor] == "\\" and cursor + 1 < len(source):
+                    cursor += 2
+                    continue
+                if source[cursor] == "(":
+                    depth += 1
+                elif source[cursor] == ")":
+                    depth -= 1
+                cursor += 1
+            mask(index + 1, cursor)
+            index = cursor
+            continue
+        if source.startswith("<http://", index) or source.startswith("<https://", index):
+            close = source.find(">", index + 1)
+            if close >= 0:
+                mask(index, close + 1)
+                index = close + 1
+                continue
+        index += 1
+    return "".join(masked)
+
+
+def _readme_english_findings(source: str) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    visible = _mask_markdown_destinations(source)
+    matches = [
+        match
+        for match in _MARKDOWN_VISIBLE_ASCII_TOKEN_RE.finditer(visible)
+        if _ASCII_LETTER_RE.search(match.group())
+    ]
+    approved: list[tuple[int, str, str, int]] = []
+    for ordinal, match in enumerate(matches):
+        value = match.group()
+        line = visible.count("\n", 0, match.start()) + 1
+        reason = README_VISIBLE_ENGLISH_ALLOWLIST.get(value)
+        if reason is None:
+            errors.append(f"README.md:{line}: unapproved visible English {value!r}")
+        else:
+            approved.append((ordinal, value, reason, line))
+
+    actual_digest = _stable_context_digest(
+        (ordinal, value, reason) for ordinal, value, reason, _line in approved
+    )
+    if actual_digest != README_VISIBLE_CONTEXT_DIGEST:
+        values = sorted({value for _ordinal, value, _reason, _line in approved})
+        errors.append(
+            f"README.md: unapproved visible English context inventory {values!r} "
+            f"(expected {README_VISIBLE_CONTEXT_DIGEST}, got {actual_digest})"
+        )
+        return errors, warnings
+
+    for _ordinal, value, reason, line in approved:
+        warnings.append(
+            f"README.md:{line}: retained unchanged English {value!r} ({reason})"
+        )
+    return errors, warnings
 
 
 def _collect_audit(
@@ -1060,6 +1255,20 @@ def _collect_audit(
         unchanged_errors, unchanged_warnings = _unchanged_english_findings(states.values())
         errors.extend(unchanged_errors)
         warnings.update(unchanged_warnings)
+        readme_path = repository / "README.md"
+        if not readme_path.is_file():
+            errors.append("README.md: missing from residual-English audit scope")
+        else:
+            try:
+                readme_source, readme_has_bom = _read_utf8(readme_path)
+            except (OSError, UnicodeError) as error:
+                errors.append(f"README.md: cannot scan visible UTF-8 text: {error}")
+            else:
+                if readme_has_bom:
+                    errors.append("README.md: unexpected UTF-8 BOM")
+                readme_errors, readme_warnings = _readme_english_findings(readme_source)
+                errors.extend(readme_errors)
+                warnings.update(readme_warnings)
 
     replacements.sort(key=lambda replacement: _fix_sort_key(replacement.fix))
     result = AuditResult(
@@ -1262,7 +1471,7 @@ def _build_argument_parser() -> argparse.ArgumentParser:
             command.add_argument(
                 "--report-unchanged-english",
                 action="store_true",
-                help="list paired English strings that remain unchanged",
+                help="enforce and classify retained visible English in Lua and README",
             )
             command.add_argument(
                 "--verify-structure",

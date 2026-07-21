@@ -1,5 +1,4 @@
 import csv
-import inspect
 from pathlib import Path
 import subprocess
 import tempfile
@@ -118,6 +117,67 @@ class TranslationAuditTests(unittest.TestCase):
                 report_unchanged_english=True,
             ).result
 
+    def audit_readme_variants(self, variants):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lua_path = root / "Synthetic" / "fixture.lua"
+            lua_path.parent.mkdir(parents=True)
+            lua_path.write_text("local value = 1\n", encoding="utf-8", newline="")
+            readme_path = root / "README.md"
+            approved = (ROOT / "README.md").read_text(encoding="utf-8")
+            readme_path.write_text(approved, encoding="utf-8", newline="")
+            subprocess.run(
+                ["git", "init", "-q", str(root)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            subprocess.run(
+                ["git", "-C", str(root), "add", "--", "Synthetic/fixture.lua", "README.md"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(root),
+                    "-c",
+                    "user.name=Codex",
+                    "-c",
+                    "user.email=codex@local",
+                    "commit",
+                    "-q",
+                    "-m",
+                    "baseline",
+                ],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            base_ref = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            ).stdout.strip()
+            results = {}
+            for name, source in variants.items():
+                if source is None:
+                    readme_path.unlink(missing_ok=True)
+                else:
+                    readme_path.write_text(source, encoding="utf-8", newline="")
+                results[name] = _collect_audit(
+                    root,
+                    CSV_PATH,
+                    XLSX_PATH,
+                    base_ref,
+                    report_unchanged_english=True,
+                ).result
+            return results
+
     def test_extracts_quoted_strings_without_losing_escapes(self):
         source = 'local values = {"Porygon2", "Seed: %08X\\n"}'
         self.assertEqual(
@@ -152,15 +212,22 @@ class TranslationAuditTests(unittest.TestCase):
         )
         self.assertEqual(expected, "配送物品１")
 
-    def test_public_selector_supports_narrow_pass_and_victory_road_context(self):
-        parameters = inspect.signature(select_expected_translation).parameters
-        self.assertIn("table_name", parameters)
-        self.assertIn("entry_index", parameters)
-
+    def test_public_selector_applies_only_narrow_curated_context_after_csv(self):
         ambiguous_xlsx = {
             "items": {"Pass": {"定期月票", "磁浮列车自由票"}},
             "locations": {"Victory Road": {"冠军之路", "冠军之路（黑２／白２）"}},
         }
+        self.assertEqual(
+            select_expected_translation(
+                "Pass",
+                "items",
+                {"items": {"Pass": {"CSV 规范票"}}},
+                ambiguous_xlsx,
+                table_name="itemNamesList",
+                entry_index=480,
+            ),
+            "CSV 规范票",
+        )
         self.assertEqual(
             select_expected_translation(
                 "Pass",
@@ -180,6 +247,26 @@ class TranslationAuditTests(unittest.TestCase):
                 ambiguous_xlsx,
                 table_name="itemNamesList",
                 entry_index=479,
+            )
+        )
+        self.assertIsNone(
+            select_expected_translation(
+                "Pass",
+                "items",
+                {},
+                ambiguous_xlsx,
+                table_name="locationNamesList",
+                entry_index=480,
+            )
+        )
+        self.assertIsNone(
+            select_expected_translation(
+                "Pass",
+                "moves",
+                {},
+                ambiguous_xlsx,
+                table_name="itemNamesList",
+                entry_index=480,
             )
         )
         self.assertEqual(
@@ -277,16 +364,102 @@ class TranslationAuditTests(unittest.TestCase):
             )
         )
 
-    def test_unchanged_english_report_classifies_allowed_technical_literal(self):
-        result = self.audit_unchanged_literal("orange")
-        self.assertEqual(result.errors, [])
+    def test_allowlisted_lua_values_require_an_approved_context(self):
+        for value in ("orange", "red", "clear", "reset", "frame"):
+            with self.subTest(value=value):
+                result = self.audit_unchanged_literal(value)
+                self.assertFalse(result.ok)
+                self.assertTrue(
+                    any(
+                        "unapproved unchanged English context" in error
+                        and repr(value) in error
+                        for error in result.errors
+                    )
+                )
+
+    def test_real_lua_contexts_retain_classified_colors_and_runtime_values(self):
+        reported = _collect_audit(
+            ROOT,
+            CSV_PATH,
+            XLSX_PATH,
+            BASE_REF,
+            report_unchanged_english=True,
+        ).result
+        for value, reason in (
+            ("orange", "emulator API color literal"),
+            ("red", "emulator API color literal"),
+            ("clear", "emulator setting value"),
+            ("reset", "emulator callback event"),
+            ("frame", "emulator callback event"),
+        ):
+            with self.subTest(value=value):
+                self.assertTrue(
+                    any(
+                        f"retained unchanged English {value!r}" in warning
+                        and reason in warning
+                        and not warning.startswith("README.md")
+                        for warning in reported.warnings
+                    )
+                )
+
+    def test_readme_visible_markdown_is_audited_but_link_destinations_are_excluded(self):
+        approved = (ROOT / "README.md").read_text(encoding="utf-8")
+        variants = {
+            "approved": approved,
+            "url_destination": approved.replace(
+                "https://github.com/Real96/PokeLua",
+                "https://example.invalid/UnapprovedDestination",
+                1,
+            ),
+            "heading": approved + "\n# UnapprovedHeading\n",
+            "body": approved + "\nUnapprovedBody\n",
+            "link_label": approved + "\n[UnapprovedLink](https://example.invalid/path)\n",
+            "image_alt": approved + "\n![UnapprovedAlt](https://example.invalid/image.png)\n",
+            "inline_code": approved + "\n`UnapprovedCode`\n",
+            "missing": None,
+        }
+        results = self.audit_readme_variants(variants)
+        self.assertEqual(results["approved"].errors, [])
+        self.assertEqual(results["url_destination"].errors, [])
+        for name in ("heading", "body", "link_label", "image_alt", "inline_code"):
+            with self.subTest(name=name):
+                self.assertFalse(results[name].ok)
+                self.assertTrue(
+                    any(
+                        "README.md" in error and "unapproved visible English" in error
+                        for error in results[name].errors
+                    )
+                )
+        self.assertFalse(results["missing"].ok)
         self.assertTrue(
             any(
-                "retained unchanged English 'orange'" in warning
-                and "emulator API color literal" in warning
-                for warning in result.warnings
+                "README.md" in error and "missing" in error
+                for error in results["missing"].errors
             )
         )
+
+    def test_real_readme_retained_english_has_specific_reasons(self):
+        reported = _collect_audit(
+            ROOT,
+            CSV_PATH,
+            XLSX_PATH,
+            BASE_REF,
+            report_unchanged_english=True,
+        ).result
+        for value, reason in (
+            ("PokeLua", "project/product name"),
+            ("RBG/Y", "game/version abbreviation"),
+            ("Shift", "external UI/keyboard text"),
+        ):
+            with self.subTest(value=value):
+                self.assertTrue(
+                    any(
+                        warning.startswith("README.md")
+                        and f"retained unchanged English {value!r}" in warning
+                        and reason in warning
+                        for warning in reported.warnings
+                    )
+                )
 
     def test_repository_audits_are_clean_and_residual_inventory_is_classified(self):
         normal = _collect_audit(ROOT, CSV_PATH, XLSX_PATH, BASE_REF).result
