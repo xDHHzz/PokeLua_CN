@@ -1,4 +1,5 @@
 import csv
+import inspect
 from pathlib import Path
 import subprocess
 import tempfile
@@ -8,6 +9,8 @@ import zipfile
 from tools.translation_audit import (
     _FileState,
     _analyze_file,
+    _baseline_source,
+    _collect_audit,
     _escape_lua_content,
     _is_valid_lua_short_content,
     _report_duplicate_divergence,
@@ -31,6 +34,90 @@ BASE_REF = "e8d381e69a8480193ebf0419382df6025255dd56"
 
 
 class TranslationAuditTests(unittest.TestCase):
+    def paired_semantic_entries(self, table_name):
+        entries = []
+        for path in sorted(ROOT.rglob("*.lua")):
+            relative_path = path.relative_to(ROOT)
+            base_source = _baseline_source(ROOT, BASE_REF, relative_path.as_posix())
+            current_source = path.read_text(encoding="utf-8")
+            base_tables = [
+                table
+                for table in find_semantic_tables(base_source, relative_path)
+                if table.name == table_name
+            ]
+            current_tables = [
+                table
+                for table in find_semantic_tables(current_source, relative_path)
+                if table.name == table_name
+            ]
+            self.assertEqual(len(current_tables), len(base_tables), relative_path.as_posix())
+            for base_table, current_table in zip(base_tables, current_tables):
+                self.assertEqual(len(current_table.tokens), len(base_table.tokens))
+                for index, (base_token, current_token) in enumerate(
+                    zip(base_table.tokens, current_table.tokens)
+                ):
+                    entries.append(
+                        (
+                            relative_path,
+                            base_table.semantic_group,
+                            index,
+                            base_token.value,
+                            current_token.value,
+                        )
+                    )
+        return entries
+
+    def audit_unchanged_literal(self, value):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lua_path = root / "Gen 3" / "mGBA" / "RS_RNG_mGBA.lua"
+            lua_path.parent.mkdir(parents=True)
+            lua_path.write_text(f'local label = "{value}"\n', encoding="utf-8", newline="")
+            subprocess.run(
+                ["git", "init", "-q", str(root)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            subprocess.run(
+                ["git", "-C", str(root), "add", "--", lua_path.relative_to(root).as_posix()],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(root),
+                    "-c",
+                    "user.name=Codex",
+                    "-c",
+                    "user.email=codex@local",
+                    "commit",
+                    "-q",
+                    "-m",
+                    "baseline",
+                ],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            base_ref = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            ).stdout.strip()
+            return _collect_audit(
+                root,
+                CSV_PATH,
+                XLSX_PATH,
+                base_ref,
+                report_unchanged_english=True,
+            ).result
+
     def test_extracts_quoted_strings_without_losing_escapes(self):
         source = 'local values = {"Porygon2", "Seed: %08X\\n"}'
         self.assertEqual(
@@ -55,6 +142,171 @@ class TranslationAuditTests(unittest.TestCase):
             xlsx_candidates={"locations": {"Stark Mountain": {"严酷山"}}},
         )
         self.assertEqual(expected, "严酷山（入口）")
+
+    def test_csv_candidate_for_gram_1_wins_before_xlsx_exclusion(self):
+        expected = select_expected_translation(
+            english="Gram 1",
+            semantic_group="items",
+            csv_candidates={"items": {"Gram 1": {"配送物品１"}}},
+            xlsx_candidates={"items": {"Gram 1": {"配送物品"}}},
+        )
+        self.assertEqual(expected, "配送物品１")
+
+    def test_public_selector_supports_narrow_pass_and_victory_road_context(self):
+        parameters = inspect.signature(select_expected_translation).parameters
+        self.assertIn("table_name", parameters)
+        self.assertIn("entry_index", parameters)
+
+        ambiguous_xlsx = {
+            "items": {"Pass": {"定期月票", "磁浮列车自由票"}},
+            "locations": {"Victory Road": {"冠军之路", "冠军之路（黑２／白２）"}},
+        }
+        self.assertEqual(
+            select_expected_translation(
+                "Pass",
+                "items",
+                {},
+                ambiguous_xlsx,
+                table_name="itemNamesList",
+                entry_index=480,
+            ),
+            "磁浮列车自由票",
+        )
+        self.assertIsNone(
+            select_expected_translation(
+                "Pass",
+                "items",
+                {},
+                ambiguous_xlsx,
+                table_name="itemNamesList",
+                entry_index=479,
+            )
+        )
+        self.assertEqual(
+            select_expected_translation(
+                "Victory Road",
+                "dppt",
+                {},
+                ambiguous_xlsx,
+                table_name="locationNamesList",
+                entry_index=0,
+            ),
+            "冠军之路",
+        )
+        self.assertEqual(
+            select_expected_translation(
+                "Victory Road",
+                "bw",
+                {"bw": {"Victory Road": {"冠军之路"}}},
+                ambiguous_xlsx,
+                table_name="locationNamesList",
+                entry_index=0,
+            ),
+            "冠军之路",
+        )
+
+    def test_repository_semantic_slots_use_curated_pass_and_victory_road_values(self):
+        item_entries = [
+            entry for entry in self.paired_semantic_entries("itemNamesList") if entry[3] == "Pass"
+        ]
+        self.assertEqual(len(item_entries), 10)
+        self.assertEqual({entry[2] for entry in item_entries}, {480})
+        self.assertEqual({entry[4] for entry in item_entries}, {"磁浮列车自由票"})
+
+        victory_entries = [
+            entry
+            for entry in self.paired_semantic_entries("locationNamesList")
+            if entry[3] == "Victory Road"
+        ]
+        dppt_entries = [entry for entry in victory_entries if entry[1] == "dppt"]
+        bw_entries = [entry for entry in victory_entries if entry[1] == "bw"]
+        self.assertEqual(len(dppt_entries), 24)
+        self.assertEqual({entry[4] for entry in dppt_entries}, {"冠军之路"})
+        self.assertEqual(len(bw_entries), 30)
+        self.assertEqual({entry[4] for entry in bw_entries}, {"冠军之路"})
+
+    def test_checksums_script_has_fully_translated_display_values(self):
+        path = ROOT / "Gen 3" / "mGBA" / "RS_RNG_Checksums_mGBA.lua"
+        source = path.read_text(encoding="utf-8")
+        self.assertIn('--Checksums = console:createBuffer("校验和")', source)
+        self.assertNotIn('console:createBuffer("Checksums")', source)
+        self.assertIn('local playerGenderSymbols = {"男", "女"}', source)
+        self.assertIn('local battleStyleOptions = {"替换", "连战"}', source)
+        for english, chinese in (
+            (r"Zigzagoon seen? %s\n", r"已遇见蛇纹熊？%s\n"),
+            (r"Wurmple seen? %s\n", r"已遇见刺尾虫？%s\n"),
+            (r"Wingull seen? %s\n", r"已遇见长翅鸥？%s\n"),
+        ):
+            self.assertNotIn(english, source)
+            self.assertIn(chinese, source)
+        self.assertIn("function getChecksumsList()", source)
+
+    def test_gen5_version_values_are_consistent_without_global_digit_normalization(self):
+        files = [
+            ROOT / "Gen 5" / emulator / script
+            for emulator in ("BizHawk", "DeSmuMe")
+            for script in ("B2W2_RNG_" + emulator + ".lua", "BW_RNG_" + emulator + ".lua")
+        ]
+        sources = {path: path.read_text(encoding="utf-8") for path in files}
+        combined = "".join(sources.values())
+        self.assertNotIn("黑２", combined)
+        self.assertNotIn("白２", combined)
+        self.assertEqual(combined.count('"黑2"'), 6)
+        self.assertEqual(combined.count('"白2"'), 8)
+        self.assertEqual(combined.count("请改用黑2／白2"), 2)
+        for ordinal in ("配送物品１", "配送物品２", "配送物品３"):
+            self.assertEqual(combined.count(ordinal), 4)
+
+    def test_no_curated_traditional_or_readme_alt_text_omissions_remain(self):
+        for path in sorted(ROOT.rglob("*.lua")):
+            source = path.read_text(encoding="utf-8")
+            self.assertNotIn("冠軍之路（黑／白） 冠軍之路（黑２／白２）", source)
+            self.assertNotIn("軍", source)
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        image_url = "https://github.com/Real96/PokeLua/assets/20956021/e6a21f63-ba96-4cc6-82fa-e9fba93537c6"
+        self.assertNotIn(f"![image]({image_url})", readme)
+        self.assertIn(f"![DeSmuMe 最终文件夹示例]({image_url})", readme)
+
+    def test_unchanged_english_report_rejects_unapproved_prose(self):
+        result = self.audit_unchanged_literal("Actionable sentence")
+        self.assertFalse(result.ok)
+        self.assertTrue(
+            any(
+                "unapproved unchanged English 'Actionable sentence'" in error
+                for error in result.errors
+            )
+        )
+
+    def test_unchanged_english_report_classifies_allowed_technical_literal(self):
+        result = self.audit_unchanged_literal("orange")
+        self.assertEqual(result.errors, [])
+        self.assertTrue(
+            any(
+                "retained unchanged English 'orange'" in warning
+                and "emulator API color literal" in warning
+                for warning in result.warnings
+            )
+        )
+
+    def test_repository_audits_are_clean_and_residual_inventory_is_classified(self):
+        normal = _collect_audit(ROOT, CSV_PATH, XLSX_PATH, BASE_REF).result
+        self.assertEqual(normal.fixes, [])
+        self.assertEqual(normal.errors, [])
+        self.assertEqual(normal.warnings, [])
+
+        reported = _collect_audit(
+            ROOT,
+            CSV_PATH,
+            XLSX_PATH,
+            BASE_REF,
+            report_unchanged_english=True,
+        ).result
+        self.assertEqual(reported.fixes, [])
+        self.assertEqual(reported.errors, [])
+        self.assertTrue(reported.warnings)
+        self.assertTrue(
+            all("retained unchanged English" in warning for warning in reported.warnings)
+        )
 
     def test_xlsx_fallback_rejects_gram_1_without_disabling_safe_locations(self):
         path = Path("Gen 5") / "BizHawk" / "BW_RNG_BizHawk.lua"

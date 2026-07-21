@@ -336,7 +336,7 @@ local itemNamesList = {
  "可达鸭喷壶", "宝芬盒", "自行车", "房间钥匙", "大木的信", "新月之羽", "会员卡", "天界之笛", "船票",
  "华丽大赛参加证", "火山镇石", "包裹", "兑换券１", "兑换券２", "兑换券３", "仓库钥匙", "秘传之药", "对战记录器", "葛拉西蒂亚花",
  "秘密钥匙", "球果盒", "未知图腾笔记", "树果种植盆", "探宝器", "蓝卡", "美味尾巴", "透明铃铛", "钥匙卡",
- "地下钥匙", "杰尼龟喷壶", "红色鳞片", "遗失物", "定期月票", "机械零件", "银色之羽", "虹色之羽", "神奇蛋",
+ "地下钥匙", "杰尼龟喷壶", "红色鳞片", "遗失物", "磁浮列车自由票", "机械零件", "银色之羽", "虹色之羽", "神奇蛋",
  "红球果", "黄球果", "蓝球果", "绿球果", "粉球果", "白球果", "黑球果", "速度球", "等级球",
  "诱饵球", "沉重球", "甜蜜球", "友友球", "月亮球", "竞赛球", "公园球", "相册", "ＧＢ播放器", "海声铃铛",
  "愤怒馒头", "数据卡01", "数据卡02", "数据卡03", "数据卡04", "数据卡05", "数据卡06", "数据卡07",
@@ -369,13 +369,13 @@ if gameVersionCode == 0x41 then  -- 检查游戏版本
 elseif gameVersionCode == 0x42 then
  gameVersion = "黑"
 elseif gameVersionCode == 0x44 then
- gameVersion = "白２"
+ gameVersion = "白2"
 elseif gameVersionCode == 0x45 then
- gameVersion = "黑２"
+ gameVersion = "黑2"
 end
 
 function getGameAddrOffset(offset)
- return gameVersion == "白２" and offset or 0
+ return gameVersion == "白2" and offset or 0
 end
 
 local mtSeedAddr, mtIndexAddr, currentSeedAddr, boxAddr, partySlotsCounterAddr, partyAddr, trainerIDsAddr, cgearEnemyAddr, currBoxIndexAddr,
@@ -500,8 +500,8 @@ function printGameInfo()
 
  if gameVersion == "" then  -- 打印游戏信息
   print("版本：未知游戏")
- elseif gameVersion ~= "黑２" and gameVersion ~= "白２" then
-  print(string.format("版本：%s - 游戏版本错误！请改用黑２／白２\n", gameVersion))
+ elseif gameVersion ~= "黑2" and gameVersion ~= "白2" then
+  print(string.format("版本：%s - 游戏版本错误！请改用黑2／白2\n", gameVersion))
  elseif gameLanguage == "" then
   print("版本："..gameVersion)
   print("语言：未知语言\n")

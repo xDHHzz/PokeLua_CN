@@ -39,7 +39,7 @@ function initializeBuffers()
  Option:setSize(100, 100)
  SaveInfo = console:createBuffer("存档信息")
  SaveInfo:setSize(100, 100)
- --Checksums = console:createBuffer("Checksums")
+ --Checksums = console:createBuffer("校验和")
  --Checksums:setSize(100, 100)
 end
 
@@ -194,7 +194,7 @@ function showRNGInfo(buffer)
 end
 
 function showTrainerInfo(buffer)
- local playerGenderSymbols = {"M", "F"}
+ local playerGenderSymbols = {"男", "女"}
  local playerGenderIndex = emu:read8(saveBlock2Addr + 0x8)
  local trainerTID, trainerSID = getTrainerIDs()
  local playerName = getPlayerNameString(emu:readRange(saveBlock2Addr, 8))
@@ -208,7 +208,7 @@ end
 function showCurrentOptions(buffer, textSpeedOptionIndex)
  local speedTextOptions = {"慢", "中", "快"}
  local battleSceneOptions = {"开", "关"}
- local battleStyleOptions = {"Shift", "固定"}
+ local battleStyleOptions = {"替换", "连战"}
  local soundOptions = {"单声道", "立体声"}
  local buttonModeOptions = {"普通", "LR", "L=A"}
  local buttonModeOptionIndex = emu:read8(saveBlock2Addr + 0x13)
@@ -248,9 +248,9 @@ function showSaveInfo(buffer)
  buffer:clear()
  buffer:print(string.format("时钟：%02d：%02d (%s：%s)\n", currentClockHour, currentClockMinute, currentClockHour ~= 0 and "XX" or "00", currentClockMinute ~= 0 and "XX" or "00"))
  buffer:print(string.format("最初的伙伴：%s\n", starterPokemonNames[starterPokemonIndex + 1]))
- buffer:print(string.format("Zigzagoon seen? %s\n", pokemonSeenFlag(263) == true and "是" or "否"))
- buffer:print(string.format("Wurmple seen? %s\n", pokemonSeenFlag(265) == true and "是" or "否"))
- buffer:print(string.format("Wingull seen? %s\n", pokemonSeenFlag(278) == true and "是" or "否"))
+ buffer:print(string.format("已遇见蛇纹熊？%s\n", pokemonSeenFlag(263) == true and "是" or "否"))
+ buffer:print(string.format("已遇见刺尾虫？%s\n", pokemonSeenFlag(265) == true and "是" or "否"))
+ buffer:print(string.format("已遇见长翅鸥？%s\n", pokemonSeenFlag(278) == true and "是" or "否"))
  showCurrentTime(buffer)
 end
 

@@ -77,7 +77,7 @@
 3. 将其重命名为 `lua51.dll`
 
 #### 最终文件夹：
-![image](https://github.com/Real96/PokeLua/assets/20956021/e6a21f63-ba96-4cc6-82fa-e9fba93537c6)
+![DeSmuMe 最终文件夹示例](https://github.com/Real96/PokeLua/assets/20956021/e6a21f63-ba96-4cc6-82fa-e9fba93537c6)
 
 ### BizHawk
 使用最新发布版：[链接](https://github.com/TASEmulators/BizHawk/releases)

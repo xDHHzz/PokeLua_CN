@@ -47,6 +47,14 @@ LOCATION_GROUPS = {"rs", "e", "frlg", "dppt", "hgss", "bw", "bw2", "bdsp"}
 # Gram 1/2/3 sequence, so only this context-qualified XLSX fallback is rejected.
 XLSX_FALLBACK_EXCLUSIONS = frozenset({("items", "Gram 1")})
 
+# These decisions need more context than a reference row's English spelling.
+# The item index is zero-based here and equals the in-game item ID; ``None`` is
+# an intentional wildcard only after both semantic group and table name match.
+CURATED_CONTEXT_TRANSLATIONS = {
+    ("items", "itemNamesList", 480, "Pass"): "磁浮列车自由票",
+    ("dppt", "locationNamesList", None, "Victory Road"): "冠军之路",
+}
+
 XLSX_SECTION_NAMES = {
     "宝可梦": "species",
     "宝可梦列表": "species",
@@ -161,6 +169,97 @@ _JAPANESE_KANA_RE = re.compile(r"[\u3040-\u30ff]")
 _HEX_DIGITS = frozenset("0123456789abcdefABCDEF")
 _LUA_SIMPLE_ESCAPES = frozenset("abfnrtv\\\"'")
 _LUA_WHITESPACE = frozenset(" \t\v\f\r\n")
+
+# Exact unchanged Lua-string values retained after a full display-text review.
+# Every entry has a concrete runtime or product reason; values absent here are
+# not silently treated as technical just because they happen to contain ASCII.
+UNCHANGED_ENGLISH_ALLOWLIST = {
+    **{
+        value: "format/parse template"
+        for value in (
+            "%02d",
+            "%02X",
+            r"%02X%02X\n",
+            "%08X",
+            "%08X %08X %08X %d %d",
+            "%08X %08X %08X %d %d %08X %d %s",
+            r"%08X %08X %08X %d %d %08X %d %s\n",
+            r"%08X %08X %08X %d %d\n",
+            "%08X %08X %d",
+            "%08X %08X %d %d %d %s %08X %s",
+            r"%08X %08X %d %d %d %s %08X %s\n",
+            r"%08X %08X %d\n",
+            "%08X %d",
+            r"%08X %d\n",
+            "%08X%s",
+            "%s %02d",
+            "%S+",
+            r"%s\n%s",
+        )
+    },
+    **{value: "layout escape sequence" for value in (r"\n", r"\n\n", r"\t")},
+    **{
+        value: "userdata persistence key"
+        for value in (
+            "battleStartJumpFlag",
+            "cgearSeed",
+            "hitDate",
+            "hitDelay",
+            "initialSeed",
+            "initialSeedHigh",
+            "initialSeedLow",
+            "lastCurrentSeedBeforeBattle",
+            "mtCounter",
+            "tempCurrentSeed",
+            "tempCurrentSeedLow",
+        )
+    },
+    "frame": "emulator callback event",
+    "reset": "emulator callback event",
+    "misc": "offset-map lookup key",
+    "H": "hidden-ability marker",
+    "L=A": "emulator control mapping value",
+    "LR": "emulator control mapping value",
+    "XX": "unknown-clock placeholder",
+    **{
+        value: "emulator API color literal"
+        for value in ("#0000007F", "gray", "green", "limegreen", "orange", "red")
+    },
+    **{
+        value: "ROM language/region code"
+        for value in ("EUR", "EUR/USA", "FRE", "GER", "ITA", "JPN", "KOR", "SPA", "USA")
+    },
+    **{f"F{index}": "emulator API key name" for index in range(1, 11)},
+    **{f"Keypad{index}": "emulator API key name" for index in range(1, 9)},
+    **{f"Number{index}": "emulator API key name" for index in range(1, 9)},
+    **{f"numpad{index}": "emulator API key name" for index in range(1, 9)},
+    "shift": "emulator API key name",
+    "clear": "emulator setting value",
+    "gens": "emulator setting value",
+    r"D:\\Desktop\\mGBA\\battery\\Pokemon - Ruby Version (USA, Europe) (Rev 2).sav": (
+        "example ROM save path"
+    ),
+    r"00000000 00000000 0 0 0 2000/01/01 00:00:00 00000000 false\n": (
+        "serialized state record"
+    ),
+    r"00000000 00000000 00000000 0 0 00000000 0 2000/01/01 00:00:00\n": (
+        "serialized state record"
+    ),
+    r"00000000 00000000 00000000 0 0 00000000\n": "serialized state record",
+    r"00000000 00000000 0\n": "serialized state record",
+    r"00000000 0\n": "serialized state record",
+    "20%s/%s/%s": "serialized date template",
+    r"2000/01/01\n00:00:00": "serialized date placeholder",
+    "states/%s_%s_states_values.txt": "state-file path template",
+    "r": "file access mode",
+    "rb": "file access mode",
+    "w": "file access mode",
+    "false": "serialized Boolean value",
+    "mkdir states": "state-directory command",
+    "10ANNIV / Aura Mew": "official event name",
+    "C-Gear": "official product/system name",
+    "MissingNo.": "official glitch name",
+}
 
 
 def _long_bracket_end(source: str, start: int) -> tuple[int, bool] | None:
@@ -538,22 +637,37 @@ def select_expected_translation(
     semantic_group: str | None,
     csv_candidates: CandidateMap,
     xlsx_candidates: CandidateMap,
+    *,
+    table_name: str | None = None,
+    entry_index: int | None = None,
 ) -> str | None:
     """Select one context-qualified translation, with CSV-first precedence."""
 
-    if semantic_group is None:
+    expected, _source, _ambiguity = _resolve_expected(
+        english,
+        semantic_group,
+        csv_candidates,
+        xlsx_candidates,
+        table_name=table_name,
+        entry_index=entry_index,
+    )
+    return expected
+
+
+def _curated_context_translation(
+    english: str,
+    semantic_group: str,
+    table_name: str | None,
+    entry_index: int | None,
+) -> str | None:
+    if table_name is None:
         return None
-    normalized_group = semantic_group.casefold()
-    csv_values = _candidate_values(csv_candidates, normalized_group, english)
-    if csv_values:
-        return next(iter(csv_values)) if len(csv_values) == 1 else None
-    xlsx_group = _xlsx_group_for(normalized_group)
-    if xlsx_group is None:
-        return None
-    if (xlsx_group, english) in XLSX_FALLBACK_EXCLUSIONS:
-        return None
-    xlsx_values = _candidate_values(xlsx_candidates, xlsx_group, english)
-    return next(iter(xlsx_values)) if len(xlsx_values) == 1 else None
+    exact_key = (semantic_group, table_name, entry_index, english)
+    wildcard_key = (semantic_group, table_name, None, english)
+    return CURATED_CONTEXT_TRANSLATIONS.get(
+        exact_key,
+        CURATED_CONTEXT_TRANSLATIONS.get(wildcard_key),
+    )
 
 
 def _resolve_expected(
@@ -561,6 +675,9 @@ def _resolve_expected(
     semantic_group: str | None,
     csv_candidates: CandidateMap,
     xlsx_candidates: CandidateMap,
+    *,
+    table_name: str | None = None,
+    entry_index: int | None = None,
 ) -> tuple[str | None, str | None, str | None]:
     if semantic_group is None:
         return None, None, None
@@ -570,6 +687,9 @@ def _resolve_expected(
         return None, None, f'ambiguous CSV candidates for {group} {english!r}: {sorted(csv_values)!r}'
     if len(csv_values) == 1:
         return next(iter(csv_values)), "csv", None
+    curated = _curated_context_translation(english, group, table_name, entry_index)
+    if curated is not None:
+        return curated, "curated", None
     xlsx_group = _xlsx_group_for(group)
     if xlsx_group is None:
         return None, None, None
@@ -745,12 +865,16 @@ def _analyze_file(
             warnings.add(f"{display_path}: locationNamesList has no recognized semantic context")
             continue
 
-        for base_token, current_token in zip(base_table.tokens, current_table.tokens):
+        for entry_index, (base_token, current_token) in enumerate(
+            zip(base_table.tokens, current_table.tokens)
+        ):
             expected, source_name, ambiguity = _resolve_expected(
                 base_token.value,
                 current_table.semantic_group,
                 csv_candidates,
                 xlsx_candidates,
+                table_name=current_table.name,
+                entry_index=entry_index,
             )
             if ambiguity:
                 warnings.add(ambiguity)
@@ -817,7 +941,10 @@ def _report_duplicate_divergence(states: Iterable[_FileState], errors: list[str]
     return diverged
 
 
-def _unchanged_english_warnings(states: Iterable[_FileState]) -> list[str]:
+def _unchanged_english_findings(
+    states: Iterable[_FileState],
+) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
     warnings: list[str] = []
     for state in sorted(states, key=lambda item: item.relative_path.as_posix()):
         base_tokens = extract_lua_short_strings(state.base_source)
@@ -831,9 +958,23 @@ def _unchanged_english_warnings(states: Iterable[_FileState]) -> list[str]:
             if any(start < current_token.start < end for start, end in char_map_spans):
                 continue
             line = state.current_source.count("\n", 0, current_token.start) + 1
-            warnings.append(
-                f"{state.relative_path.as_posix()}:{line}: unchanged English {current_token.value!r}"
-            )
+            location = f"{state.relative_path.as_posix()}:{line}"
+            reason = UNCHANGED_ENGLISH_ALLOWLIST.get(current_token.value)
+            if reason is None:
+                errors.append(
+                    f"{location}: unapproved unchanged English {current_token.value!r}"
+                )
+            else:
+                warnings.append(
+                    f"{location}: retained unchanged English {current_token.value!r} ({reason})"
+                )
+    return errors, warnings
+
+
+def _unchanged_english_warnings(states: Iterable[_FileState]) -> list[str]:
+    """Compatibility wrapper returning only classified retained inventory."""
+
+    _errors, warnings = _unchanged_english_findings(states)
     return warnings
 
 
@@ -916,7 +1057,9 @@ def _collect_audit(
 
     unsafe = _report_duplicate_divergence(states.values(), errors) or unsafe
     if report_unchanged_english:
-        warnings.update(_unchanged_english_warnings(states.values()))
+        unchanged_errors, unchanged_warnings = _unchanged_english_findings(states.values())
+        errors.extend(unchanged_errors)
+        warnings.update(unchanged_warnings)
 
     replacements.sort(key=lambda replacement: _fix_sort_key(replacement.fix))
     result = AuditResult(
