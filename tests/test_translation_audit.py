@@ -452,17 +452,61 @@ class TranslationAuditTests(unittest.TestCase):
             "thematic_break": ("* * *", "UnapprovedAcrossThematicBreak"),
             "ordered_list_period": ("1. 列表", "UnapprovedAcrossOrderedList"),
             "ordered_list_paren": ("1) 列表", "UnapprovedAcrossParenList"),
+            "ordered_list_leading_zero": (
+                "01. 列表",
+                "UnapprovedAcrossLeadingZeroList",
+            ),
             "html_raw_tag": ("<script>", "UnapprovedAcrossRawHtml"),
             "html_block_tag": ("<div>", "UnapprovedAcrossHtmlBlock"),
+            "html_self_closing_block_tag": (
+                "<div/>",
+                "UnapprovedAcrossSelfClosingHtml",
+            ),
             "html_comment": ("<!-- 注释 -->", "UnapprovedAcrossHtmlComment"),
             "html_pi": ("<?处理?>", "UnapprovedAcrossHtmlPi"),
             "html_declaration": ("<!DOCTYPE html>", "UnapprovedAcrossDeclaration"),
+            "html_lower_declaration": (
+                "<!doctype html>",
+                "UnapprovedAcrossLowerDeclaration",
+            ),
             "html_cdata": ("<![CDATA[内容]]>", "UnapprovedAcrossCdata"),
-            "indented_spaces": ("    代码", "UnapprovedAcrossIndentedCode"),
-            "indented_tab": ("\t代码", "UnapprovedAcrossTabbedCode"),
+        }
+        paragraph_continuation_cases = {
+            "indented_spaces": (
+                "链接\n    说明",
+                "UnapprovedIndentedDestination",
+            ),
+            "indented_tab": ("链接\n\t说明", "UnapprovedTabbedDestination"),
+            "ordered_two": ("链接\n2. 说明", "UnapprovedOrderedTwoDestination"),
+            "ordered_ten_paren": (
+                "链接\n10) 说明",
+                "UnapprovedOrderedTenDestination",
+            ),
             "reference_definition": (
-                "[引用]: /路径",
-                "UnapprovedAcrossReferenceDefinition",
+                "链接\n[引用]: /路径\n说明",
+                "UnapprovedReferenceDefinitionDestination",
+            ),
+            "empty_unordered_marker": (
+                "链接\n+\n说明",
+                "UnapprovedEmptyUnorderedDestination",
+            ),
+            "empty_ordered_marker": (
+                "链接\n1.\n说明",
+                "UnapprovedEmptyOrderedDestination",
+            ),
+            "mixed_setext_like": (
+                "链接\n=-=\n说明",
+                "UnapprovedMixedSetextDestination",
+            ),
+            "closing_raw_html": (
+                "链接\n</script>\n说明",
+                "UnapprovedClosingRawHtmlDestination",
+            ),
+        }
+        destination_only_continuation_cases = {
+            "incomplete_html_slash": (
+                "链接\n<div/foo\n说明",
+                "UnapprovedIncompleteHtmlSlashDestination",
             ),
         }
         block_local_link_cases = {
@@ -511,6 +555,10 @@ class TranslationAuditTests(unittest.TestCase):
                 approved
                 + "\n[链接\n说明](https://example.invalid/UnapprovedSoftLineDestination)\n"
             ),
+            "reference_definition_destination": (
+                approved
+                + "\n[引用]: https://example.invalid/UnapprovedReferenceDestination\n"
+            ),
         }
         variants.update(
             {
@@ -524,15 +572,43 @@ class TranslationAuditTests(unittest.TestCase):
                 for name, block_line in block_local_link_cases.items()
             }
         )
+        variants.update(
+            {
+                name: (
+                    approved
+                    + f"\n[{label}](https://example.invalid/{destination})\n"
+                )
+                for name, (label, destination) in paragraph_continuation_cases.items()
+            }
+        )
+        variants.update(
+            {
+                name: (
+                    approved
+                    + f"\n[{label}](https://example.invalid/{destination})\n"
+                )
+                for name, (label, destination) in destination_only_continuation_cases.items()
+            }
+        )
         results = self.audit_readme_variants(variants)
         self.assertEqual(results["approved"].errors, [])
         self.assertEqual(results["url_destination"].errors, [])
         self.assertEqual(results["balanced_destination"].errors, [])
         self.assertEqual(results["autolink_destination"].errors, [])
         self.assertEqual(results["soft_line_link"].errors, [])
+        with self.subTest(name="reference_definition_destination"):
+            self.assertEqual(results["reference_definition_destination"].errors, [])
         for name in block_local_link_cases:
             with self.subTest(name=name):
                 self.assertEqual(results[name].errors, [])
+        for name in paragraph_continuation_cases:
+            with self.subTest(name=name):
+                self.assertEqual(results[name].errors, [])
+        for name, (_label, destination) in destination_only_continuation_cases.items():
+            with self.subTest(name=name):
+                self.assertFalse(
+                    any(destination in error for error in results[name].errors)
+                )
         for name in ("heading", "body", "link_label", "image_alt", "inline_code"):
             with self.subTest(name=name):
                 self.assertFalse(results[name].ok)

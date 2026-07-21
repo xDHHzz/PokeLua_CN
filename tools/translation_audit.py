@@ -1268,14 +1268,14 @@ def _mask_markdown_destinations(source: str) -> str:
                 indentation += 4 - indentation % 4
             cursor += 1
             if indentation >= 4:
-                return True
+                return False
 
         content = line[cursor:]
         if not content:
             return False
         if re.match(r"#{1,6}(?:[ \t]+|$)", content):
             return True
-        if re.fullmatch(r"[=-]+[ \t]*", content):
+        if re.fullmatch(r"(?:=+|-+)[ \t]*", content):
             return True
 
         compact = content.replace(" ", "").replace("\t", "")
@@ -1287,24 +1287,30 @@ def _mask_markdown_destinations(source: str) -> str:
             return True
         if content.startswith(">"):
             return True
-        if re.match(r"[*+-](?:[ \t]+|$)", content):
+        if re.match(r"[*+-][ \t]+(?=\S)", content):
             return True
-        if re.match(r"\d{1,9}[.)](?:[ \t]+|$)", content):
-            return True
-        if re.match(r"\[(?:\\.|[^\[\]\\])+\]:[ \t]*(?:\S|$)", content):
+        ordered_list = re.match(r"(\d{1,9})[.)][ \t]+(?=\S)", content)
+        if ordered_list and int(ordered_list.group(1)) == 1:
             return True
 
         if content.startswith(("<!--", "<?", "<![CDATA[")):
             return True
-        if re.match(r"<![A-Z]", content):
+        if re.match(r"<![A-Za-z]", content):
             return True
-        html_tag = re.match(
-            r"</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t/>]|$)", content
+        raw_html_tag = re.match(
+            r"<([A-Za-z][A-Za-z0-9-]*)(?=[ \t]|>|$)", content
+        )
+        if (
+            raw_html_tag
+            and raw_html_tag.group(1).casefold() in _MARKDOWN_RAW_HTML_TAGS
+        ):
+            return True
+        block_html_tag = re.match(
+            r"</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t]|>|/>|$)", content
         )
         return bool(
-            html_tag
-            and html_tag.group(1).casefold()
-            in (_MARKDOWN_RAW_HTML_TAGS | _MARKDOWN_HTML_BLOCK_TAGS)
+            block_html_tag
+            and block_html_tag.group(1).casefold() in _MARKDOWN_HTML_BLOCK_TAGS
         )
 
     def is_fence_close(position: int, marker: str, minimum: int) -> int:
@@ -1333,6 +1339,62 @@ def _mask_markdown_destinations(source: str) -> str:
                     return cursor + 1
             cursor += 1
         return None
+
+    def standalone_reference_destination(position: int) -> tuple[int, int] | None:
+        if position > 0 and source[position - 1] != "\n":
+            return None
+        if position > 0:
+            previous_line_end = position - 1
+            previous_line_start = source.rfind("\n", 0, previous_line_end) + 1
+            if source[previous_line_start:previous_line_end].strip(" \t\r"):
+                return None
+
+        line_end = source.find("\n", position)
+        if line_end < 0:
+            line_end = len(source)
+        line = source[position:line_end].rstrip("\r")
+        definition = re.match(
+            r" {0,3}\[(?:\\.|[^\[\]\\])+\]:[ \t]*", line
+        )
+        if definition is None:
+            return None
+
+        start = position + definition.end()
+        if start >= line_end or source[start] in "\r\n":
+            return None
+        if source[start] == "<":
+            cursor = start + 1
+            while cursor < line_end:
+                if source[cursor] == "\\" and cursor + 1 < line_end:
+                    cursor += 2
+                    continue
+                if source[cursor] == ">":
+                    return start, cursor + 1
+                if source[cursor] in "<\r\n":
+                    return None
+                cursor += 1
+            return None
+
+        cursor = start
+        depth = 0
+        while cursor < line_end and source[cursor] not in " \t\r":
+            if source[cursor] == "\\" and cursor + 1 < line_end:
+                cursor += 2
+                continue
+            if source[cursor] == "(":
+                depth += 1
+            elif source[cursor] == ")":
+                if depth == 0:
+                    break
+                depth -= 1
+            cursor += 1
+        return (start, cursor) if cursor > start and depth == 0 else None
+
+    def closing_html_tag_end(position: int) -> int | None:
+        closing_tag = re.match(
+            r"</[A-Za-z][A-Za-z0-9-]*[ \t]*>", source[position:]
+        )
+        return position + closing_tag.end() if closing_tag else None
 
     index = 0
     bracket_stack: list[int] = []
@@ -1368,6 +1430,10 @@ def _mask_markdown_destinations(source: str) -> str:
         if is_markdown_block_start(index):
             bracket_stack.clear()
 
+        reference_destination = standalone_reference_destination(index)
+        if reference_destination is not None:
+            mask(*reference_destination)
+
         if character in "`~" and not is_escaped(index) and is_fence_indent(index):
             length = marker_run(index, character)
             if length >= 3:
@@ -1381,6 +1447,13 @@ def _mask_markdown_destinations(source: str) -> str:
             inline_code_ticks = marker_run(index, "`")
             index += inline_code_ticks
             continue
+
+        if character == "<" and not is_escaped(index):
+            closing_tag_end = closing_html_tag_end(index)
+            if closing_tag_end is not None:
+                mask(index, closing_tag_end)
+                index = closing_tag_end
+                continue
 
         if (
             not is_escaped(index)
