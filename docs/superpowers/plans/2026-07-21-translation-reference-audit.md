@@ -145,12 +145,15 @@ git commit -m "test: add translation reference audit"
 ### Task 2: Apply CSV-first and XLSX-fallback domain corrections
 
 **Files:**
+- Modify: `tools/translation_audit.py`
 - Modify: every affected `Gen */**/*.lua` domain table identified by the audit
 - Test: `tests/test_translation_audit.py`
 
 **Interfaces:**
 - Consumes: Task 1 CLI and the two local reference files.
 - Produces: zero unambiguous domain-reference mismatches while keeping the reference files untouched.
+
+**Curated XLSX decision:** Reject the fallback `Gram 1: 配送物品１ -> 配送物品`. The XLSX row contains both Chinese forms, and removing the ordinal would break the adjacent `Gram 1/2/3` sequence. Add a failing regression test, then retain `配送物品１` in all four Gen 5 scripts. The other 84 XLSX-sourced occurrences (13 unique BW locations) were independently reviewed as safe.
 
 - [ ] **Step 1: Run the integration audit and verify RED on current data**
 
@@ -160,7 +163,7 @@ Run:
 python tools/translation_audit.py check --csv '.\汉化统一对照表.csv' --xlsx '.\宝可梦对照表.backup.xlsx' --base-ref 'e8d381e69a8480193ebf0419382df6025255dd56'
 ```
 
-Expected: non-zero exit with mismatches including `Porygon2`, `Guillotine`, `Spell Tag`, `Cursed Body`, and incorrectly translated locations.
+Expected: non-zero exit with mismatches including `Porygon2`, `Guillotine`, `Spell Tag`, `Cursed Body`, and incorrectly translated locations; it must not propose a `Gram 1` replacement.
 
 - [ ] **Step 2: Apply only unambiguous, context-qualified reference fixes**
 
@@ -170,7 +173,7 @@ Run:
 python tools/translation_audit.py fix --csv '.\汉化统一对照表.csv' --xlsx '.\宝可梦对照表.backup.xlsx' --base-ref 'e8d381e69a8480193ebf0419382df6025255dd56'
 ```
 
-Expected: a fix summary grouped by file and semantic group; no edit to either reference file.
+Expected: a fix summary grouped by file and semantic group; no edit to either reference file; `Gram 1` remains `配送物品１`.
 
 - [ ] **Step 3: Run the integration audit and verify GREEN**
 
@@ -199,6 +202,7 @@ git commit -m "fix: align domain terms with Chinese references"
 **Files:**
 - Modify: affected `Gen */**/*.lua`
 - Modify if evidence requires: `README.md`
+- Modify: `tools/translation_audit.py`
 - Modify: `tests/test_translation_audit.py`
 
 **Interfaces:**
