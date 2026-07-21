@@ -290,6 +290,35 @@ LUA_UNCHANGED_CONTEXT_MANIFEST = {
     "Gen 5/DeSmuMe/BW_RNG_DeSmuMe.lua": "58cd39da7ced1a63c0f52e938596a28d1f5ecbf9d5b47fe822101aacc71ae5cd",
 }
 
+# This second manifest covers every current non-charMap short-string token that
+# contains an ASCII letter, including already translated mixed-language text.
+# Binding the complete value to its ordinal prevents newly inserted, moved, or
+# edited ASCII-bearing tokens from bypassing the unchanged-English classifier.
+LUA_CURRENT_ASCII_CONTEXT_MANIFEST = {
+    "Gen 1/BizHawk/RBGY_Bot_BizHawk.lua": "6fb6e3b73a397fb27ee4324b6a9d5796a2278359d4497753ee0727ba7baad980",
+    "Gen 1/VBA/RBGY_Bot_VBA.lua": "541523eaab05077b613acab2679e3871f26894333594d1d6384e11ada632ee3e",
+    "Gen 3/Dolphin/Ageto_Celebi_RNG_Dolphin.lua": "dc076b75bfb11a583d0184a1be75eacbef5f6dce407ec493812f10a1bb51e269",
+    "Gen 3/Dolphin/Channel_RNG_Dolphin.lua": "d68223b1d588fe9cff072f87d198d2b57c3b5f1b2af3a6ad773a1932b236ab86",
+    "Gen 3/Dolphin/Colo_Pikachu_RNG_Dolphin.lua": "0b63037bc69145fcef482edc7140b59a923fdebbd4cabf75bbe37531780fe958",
+    "Gen 3/Dolphin/Colosseum_Light_RNG_Dolphin.lua": "8cf082f97de99a74bc5ee8fb9fee586628c8d6d0bbb2c22cde2dd7a39a3216d6",
+    "Gen 3/Dolphin/Colosseum_RNG_Dolphin.lua": "2b4ba78ae736da5a27afb040c6290bde2601784c98514417d1637bc9e3eb76e4",
+    "Gen 3/Dolphin/XD_RNG_Dolphin.lua": "2b4ba78ae736da5a27afb040c6290bde2601784c98514417d1637bc9e3eb76e4",
+    "Gen 3/mGBA/E_RNG_mGBA.lua": "6064674ac41f0e32f20359407b7341b7c7871e148f66f4bcf089764cb07a8793",
+    "Gen 3/mGBA/FRLG_RNG_mGBA.lua": "3c4bd74e7e0d0cdfd3809cefa4d016c6c48df862773644107aa206f55ae29fd0",
+    "Gen 3/mGBA/RS_RNG_Checksums_mGBA.lua": "09bade14a2d244009254b5f78b50d73d338cee64c885cd487630eff7141f5235",
+    "Gen 3/mGBA/RS_RNG_mGBA.lua": "13a50c3a7509a94ca3eaae11365aa7f640f910400f36f8101153f8dd4e33566e",
+    "Gen 4/BizHawk/DP_RNG_BizHawk.lua": "f646f9347df9ca1b962b8b2025262779d23355ba8b84ade07e27d409a4f7a9bb",
+    "Gen 4/BizHawk/HGSS_RNG_BizHawk.lua": "ca15e8532002e502f242373515da8dfaee92f0d9038bcd6acdd42a6df312e311",
+    "Gen 4/BizHawk/Pt_RNG_BizHawk.lua": "25ea980f4b56ce1032fd45352f2e774dad86c085b8798c428debd6120af03cf7",
+    "Gen 4/DeSmuMe/DP_RNG_DeSmuMe.lua": "3853d0eba7657bfc0f115711488eb430039376cc50f0bcd8536ed2f75684616e",
+    "Gen 4/DeSmuMe/HGSS_RNG_DeSmuMe.lua": "ecd38565bfd88938db372e98009a87c0f05df7c97527604b2006ac6d1c68e114",
+    "Gen 4/DeSmuMe/Pt_RNG_DeSmuMe.lua": "580b0b98afefe0a01731c170812b29de1aa784fd919d6b3f0649e03c5040951c",
+    "Gen 5/BizHawk/B2W2_RNG_BizHawk.lua": "ed9810436a282ad54e0e9189d5839bc4348d3e51212920a13a129274ff100d8b",
+    "Gen 5/BizHawk/BW_RNG_BizHawk.lua": "6910677d95a55fad5879f98158e2bf5dfe1a0e204b7a9f786f543c5bcb8ff975",
+    "Gen 5/DeSmuMe/B2W2_RNG_DeSmuMe.lua": "ff125aebdf6c4acd92e7c6fa280f806a5677b0b594f797d6da01e955b34050a5",
+    "Gen 5/DeSmuMe/BW_RNG_DeSmuMe.lua": "42c5464033b36458693fd33ec750662868ac21916bfb9da2757fb72e67697d78",
+}
+
 README_VISIBLE_ENGLISH_ALLOWLIST = {
     **{
         value: "project/product name"
@@ -1065,6 +1094,28 @@ def _unchanged_english_findings(
         char_map_spans = [
             (table.start, table.end) for table in state.current_tables if table.semantic_group == "charMap"
         ]
+        path = state.relative_path.as_posix()
+        current_ascii = [
+            (ordinal, current_token.value, "current ASCII literal")
+            for ordinal, current_token in enumerate(current_tokens)
+            if _ASCII_LETTER_RE.search(current_token.value)
+            and not any(
+                start < current_token.start < end for start, end in char_map_spans
+            )
+        ]
+        current_ascii_digest = _stable_context_digest(current_ascii)
+        expected_current_ascii_digest = LUA_CURRENT_ASCII_CONTEXT_MANIFEST.get(path)
+        if (
+            expected_current_ascii_digest != current_ascii_digest
+            and (current_ascii or expected_current_ascii_digest is not None)
+        ):
+            errors.append(
+                f"{path}: unapproved current ASCII context inventory "
+                f"({len(current_ascii)} token(s); expected "
+                f"{expected_current_ascii_digest or 'no manifest'}, got "
+                f"{current_ascii_digest})"
+            )
+
         approved: list[tuple[int, str, str, str]] = []
         for ordinal, (base_token, current_token) in enumerate(zip(base_tokens, current_tokens)):
             if base_token.value != current_token.value or not _ASCII_LETTER_RE.search(current_token.value):
@@ -1081,7 +1132,6 @@ def _unchanged_english_findings(
             else:
                 approved.append((ordinal, current_token.value, reason, location))
 
-        path = state.relative_path.as_posix()
         actual_digest = _stable_context_digest(
             (ordinal, value, reason) for ordinal, value, reason, _location in approved
         )
@@ -1128,6 +1178,12 @@ def _mask_markdown_destinations(source: str) -> str:
         prefix = source[line_start:position]
         return len(prefix) <= 3 and not prefix.strip(" ")
 
+    def is_blank_line_end(position: int) -> bool:
+        if source[position] != "\n":
+            return False
+        line_start = source.rfind("\n", 0, position) + 1
+        return not source[line_start:position].strip(" \t\r")
+
     def is_fence_close(position: int, marker: str, minimum: int) -> int:
         if source[position] != marker or is_escaped(position) or not is_fence_indent(position):
             return 0
@@ -1163,6 +1219,9 @@ def _mask_markdown_destinations(source: str) -> str:
     while index < len(source):
         character = source[index]
 
+        if is_blank_line_end(index):
+            bracket_stack.clear()
+
         if fence_marker is not None:
             closing_length = is_fence_close(index, fence_marker, fence_length)
             if closing_length:
@@ -1186,6 +1245,7 @@ def _mask_markdown_destinations(source: str) -> str:
         if character in "`~" and not is_escaped(index) and is_fence_indent(index):
             length = marker_run(index, character)
             if length >= 3:
+                bracket_stack.clear()
                 fence_marker = character
                 fence_length = length
                 index += length

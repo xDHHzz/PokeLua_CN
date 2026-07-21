@@ -14,6 +14,7 @@ from tools.translation_audit import (
     _is_valid_lua_short_content,
     _report_duplicate_divergence,
     _scan_lua_regions,
+    _unchanged_english_findings,
     apply_reference_fixes,
     audit_repository,
     extract_lua_short_strings,
@@ -116,6 +117,24 @@ class TranslationAuditTests(unittest.TestCase):
                 base_ref,
                 report_unchanged_english=True,
             ).result
+
+    def audit_real_current_replacement(self, old, new):
+        relative_path = Path("Gen 3/mGBA/RS_RNG_Checksums_mGBA.lua")
+        absolute_path = ROOT / relative_path
+        current_source = absolute_path.read_text(encoding="utf-8")
+        self.assertEqual(current_source.count(old), 1)
+        current_source = current_source.replace(old, new, 1)
+        base_source = _baseline_source(ROOT, BASE_REF, relative_path.as_posix())
+        state = _FileState(
+            relative_path=relative_path,
+            absolute_path=absolute_path,
+            current_source=current_source,
+            current_has_bom=False,
+            base_source=base_source,
+            current_tables=find_semantic_tables(current_source, relative_path),
+            base_tables=find_semantic_tables(base_source, relative_path),
+        )
+        return _unchanged_english_findings([state])
 
     def audit_readme_variants(self, variants):
         with tempfile.TemporaryDirectory() as directory:
@@ -404,6 +423,24 @@ class TranslationAuditTests(unittest.TestCase):
                     )
                 )
 
+    def test_current_ascii_manifest_rejects_leak_in_translated_mixed_token(self):
+        errors, _warnings = self.audit_real_current_replacement(
+            r"性别：%s\n",
+            r"性别：ActionableLeak %s\n",
+        )
+        self.assertTrue(
+            any("unapproved current ASCII context inventory" in error for error in errors)
+        )
+
+    def test_current_ascii_manifest_rejects_leak_in_pure_chinese_token(self):
+        errors, _warnings = self.audit_real_current_replacement(
+            '"游戏信息"',
+            '"游戏信息ActionableLeak"',
+        )
+        self.assertTrue(
+            any("unapproved current ASCII context inventory" in error for error in errors)
+        )
+
     def test_readme_visible_markdown_is_audited_but_link_destinations_are_excluded(self):
         approved = (ROOT / "README.md").read_text(encoding="utf-8")
         variants = {
@@ -432,12 +469,23 @@ class TranslationAuditTests(unittest.TestCase):
             "fenced_link_like": (
                 approved + "\n```\n测试](UnapprovedFencedCode)\n```\n"
             ),
+            "across_blank_block": (
+                approved + "\n[\n\n](UnapprovedAcrossBlock)\n"
+            ),
+            "across_fenced_block": (
+                approved + "\n[\n```\n代码\n```\n](UnapprovedAcrossFence)\n"
+            ),
+            "soft_line_link": (
+                approved
+                + "\n[链接\n说明](https://example.invalid/UnapprovedSoftLineDestination)\n"
+            ),
         }
         results = self.audit_readme_variants(variants)
         self.assertEqual(results["approved"].errors, [])
         self.assertEqual(results["url_destination"].errors, [])
         self.assertEqual(results["balanced_destination"].errors, [])
         self.assertEqual(results["autolink_destination"].errors, [])
+        self.assertEqual(results["soft_line_link"].errors, [])
         for name in ("heading", "body", "link_label", "image_alt", "inline_code"):
             with self.subTest(name=name):
                 self.assertFalse(results[name].ok)
@@ -459,6 +507,8 @@ class TranslationAuditTests(unittest.TestCase):
             "orphan_visible",
             "inline_link_like",
             "fenced_link_like",
+            "across_blank_block",
+            "across_fenced_block",
         ):
             with self.subTest(name=name):
                 self.assertFalse(results[name].ok)
