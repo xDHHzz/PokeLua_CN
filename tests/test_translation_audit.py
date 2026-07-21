@@ -217,6 +217,67 @@ class TranslationAuditTests(unittest.TestCase):
         self.assertEqual(replacements, [])
         self.assertTrue(any("invalid Lua short-string" in warning for warning in warnings))
 
+    def test_invalid_lua_escapes_in_source_tokens_are_structural_errors(self):
+        path = Path("Gen 3") / "RS_RNG_mGBA.lua"
+        baseline = (
+            'local first = "English"\n'
+            'local label = "Base\\q"\n'
+            'local speciesNamesList = {"Species"}\n'
+        )
+        current = (
+            'local first = "中文"\n'
+            'local label = "Current\\y"\n'
+            'local speciesNamesList = {"宝可梦"}\n'
+        )
+        self.assertEqual(format_signature(r"Base\q"), ())
+        self.assertEqual(format_signature(r"Current\y"), ())
+        state = _FileState(
+            relative_path=path,
+            absolute_path=Path("unused"),
+            current_source=current,
+            current_has_bom=False,
+            base_source=baseline,
+            current_tables=find_semantic_tables(current, path),
+            base_tables=find_semantic_tables(baseline, path),
+        )
+        errors, warnings, replacements = [], set(), []
+
+        unsafe = _analyze_file(state, {}, {}, errors, warnings, replacements)
+
+        self.assertTrue(unsafe)
+        self.assertEqual(
+            errors,
+            [
+                "Gen 3/RS_RNG_mGBA.lua:2: invalid Lua escape in base short-string token 2",
+                "Gen 3/RS_RNG_mGBA.lua:2: invalid Lua escape in current short-string token 2",
+            ],
+        )
+        self.assertEqual(warnings, set())
+        self.assertEqual(replacements, [])
+
+    def test_unterminated_source_token_does_not_add_invalid_escape_error(self):
+        path = Path("Gen 3") / "RS_RNG_mGBA.lua"
+        baseline = 'local speciesNamesList = {"English"}'
+        current = 'local speciesNamesList = {"Bad\\'
+        state = _FileState(
+            relative_path=path,
+            absolute_path=Path("unused"),
+            current_source=current,
+            current_has_bom=False,
+            base_source=baseline,
+            current_tables=find_semantic_tables(current, path),
+            base_tables=find_semantic_tables(baseline, path),
+        )
+        errors, warnings, replacements = [], set(), []
+
+        unsafe = _analyze_file(state, {}, {}, errors, warnings, replacements)
+
+        self.assertTrue(unsafe)
+        self.assertTrue(any("unterminated short string" in error for error in errors))
+        self.assertFalse(any("invalid Lua escape" in error for error in errors))
+        self.assertEqual(warnings, set())
+        self.assertEqual(replacements, [])
+
     def test_lua_escape_candidate_grammar(self):
         valid = (
             r"plain",

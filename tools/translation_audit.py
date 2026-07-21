@@ -657,8 +657,28 @@ def _analyze_file(
         errors.append(f"{display_path}: unterminated long-bracket region in current source")
         unsafe = True
 
-    base_tokens = [region.token for region in base_regions if region.token is not None and "string" in region.kind]
-    current_tokens = [region.token for region in current_regions if region.token is not None and "string" in region.kind]
+    base_token_regions = [
+        region for region in base_regions if region.token is not None and "string" in region.kind
+    ]
+    current_token_regions = [
+        region for region in current_regions if region.token is not None and "string" in region.kind
+    ]
+    for source_name, source, token_regions in (
+        ("base", state.base_source, base_token_regions),
+        ("current", state.current_source, current_token_regions),
+    ):
+        for index, region in enumerate(token_regions, start=1):
+            if region.kind != "short_string" or _has_valid_lua_escapes(region.token.value):
+                continue
+            line = source.count("\n", 0, region.token.start) + 1
+            errors.append(
+                f"{display_path}:{line}: invalid Lua escape in {source_name} "
+                f"short-string token {index}"
+            )
+            unsafe = True
+
+    base_tokens = [region.token for region in base_token_regions]
+    current_tokens = [region.token for region in current_token_regions]
     if len(base_tokens) != len(current_tokens):
         errors.append(
             f"{display_path}: string-token count drift (base {len(base_tokens)}, current {len(current_tokens)})"
