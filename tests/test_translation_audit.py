@@ -167,6 +167,8 @@ class TranslationAuditTests(unittest.TestCase):
             for name, source in variants.items():
                 if source is None:
                     readme_path.unlink(missing_ok=True)
+                elif isinstance(source, bytes):
+                    readme_path.write_bytes(source)
                 else:
                     readme_path.write_text(source, encoding="utf-8", newline="")
                 results[name] = _collect_audit(
@@ -417,10 +419,25 @@ class TranslationAuditTests(unittest.TestCase):
             "image_alt": approved + "\n![UnapprovedAlt](https://example.invalid/image.png)\n",
             "inline_code": approved + "\n`UnapprovedCode`\n",
             "missing": None,
+            "balanced_destination": (
+                approved
+                + "\n[链接](https://example.invalid/a_(UnapprovedBalancedDestination))\n"
+            ),
+            "autolink_destination": (
+                approved + "\n<https://example.invalid/UnapprovedAutolinkDestination>\n"
+            ),
+            "escaped_visible": approved + "\n测试\\](UnapprovedEscapedVisible)\n",
+            "orphan_visible": approved + "\n测试](UnapprovedOrphan)\n",
+            "inline_link_like": approved + "\n`测试](UnapprovedInlineCode)`\n",
+            "fenced_link_like": (
+                approved + "\n```\n测试](UnapprovedFencedCode)\n```\n"
+            ),
         }
         results = self.audit_readme_variants(variants)
         self.assertEqual(results["approved"].errors, [])
         self.assertEqual(results["url_destination"].errors, [])
+        self.assertEqual(results["balanced_destination"].errors, [])
+        self.assertEqual(results["autolink_destination"].errors, [])
         for name in ("heading", "body", "link_label", "image_alt", "inline_code"):
             with self.subTest(name=name):
                 self.assertFalse(results[name].ok)
@@ -435,6 +452,38 @@ class TranslationAuditTests(unittest.TestCase):
             any(
                 "README.md" in error and "missing" in error
                 for error in results["missing"].errors
+            )
+        )
+        for name in (
+            "escaped_visible",
+            "orphan_visible",
+            "inline_link_like",
+            "fenced_link_like",
+        ):
+            with self.subTest(name=name):
+                self.assertFalse(results[name].ok)
+                self.assertTrue(
+                    any(
+                        "README.md" in error and "unapproved visible English" in error
+                        for error in results[name].errors
+                    )
+                )
+
+    def test_readme_invalid_utf8_and_bom_are_report_errors(self):
+        approved = (ROOT / "README.md").read_bytes()
+        results = self.audit_readme_variants(
+            {
+                "bom": b"\xef\xbb\xbf" + approved,
+                "invalid_utf8": approved + b"\n\xff\n",
+            }
+        )
+        self.assertTrue(
+            any("README.md: unexpected UTF-8 BOM" in error for error in results["bom"].errors)
+        )
+        self.assertTrue(
+            any(
+                "README.md: cannot scan visible UTF-8 text" in error
+                for error in results["invalid_utf8"].errors
             )
         )
 

@@ -1109,29 +1109,116 @@ def _mask_markdown_destinations(source: str) -> str:
             if masked[position] not in "\r\n":
                 masked[position] = " "
 
+    def is_escaped(position: int) -> bool:
+        backslashes = 0
+        position -= 1
+        while position >= 0 and source[position] == "\\":
+            backslashes += 1
+            position -= 1
+        return backslashes % 2 == 1
+
+    def marker_run(position: int, marker: str) -> int:
+        end = position
+        while end < len(source) and source[end] == marker:
+            end += 1
+        return end - position
+
+    def is_fence_indent(position: int) -> bool:
+        line_start = source.rfind("\n", 0, position) + 1
+        prefix = source[line_start:position]
+        return len(prefix) <= 3 and not prefix.strip(" ")
+
+    def is_fence_close(position: int, marker: str, minimum: int) -> int:
+        if source[position] != marker or is_escaped(position) or not is_fence_indent(position):
+            return 0
+        length = marker_run(position, marker)
+        if length < minimum:
+            return 0
+        line_end = source.find("\n", position + length)
+        if line_end < 0:
+            line_end = len(source)
+        return length if not source[position + length : line_end].strip(" \t\r") else 0
+
+    def destination_end(open_parenthesis: int) -> int | None:
+        cursor = open_parenthesis + 1
+        depth = 1
+        while cursor < len(source):
+            if source[cursor] == "\\" and cursor + 1 < len(source):
+                cursor += 2
+                continue
+            if source[cursor] == "(":
+                depth += 1
+            elif source[cursor] == ")":
+                depth -= 1
+                if depth == 0:
+                    return cursor + 1
+            cursor += 1
+        return None
+
     index = 0
+    bracket_stack: list[int] = []
+    inline_code_ticks: int | None = None
+    fence_marker: str | None = None
+    fence_length = 0
     while index < len(source):
-        if source.startswith("](", index):
-            cursor = index + 2
-            depth = 1
-            while cursor < len(source) and depth:
-                if source[cursor] == "\\" and cursor + 1 < len(source):
-                    cursor += 2
-                    continue
-                if source[cursor] == "(":
-                    depth += 1
-                elif source[cursor] == ")":
-                    depth -= 1
-                cursor += 1
-            mask(index + 1, cursor)
-            index = cursor
+        character = source[index]
+
+        if fence_marker is not None:
+            closing_length = is_fence_close(index, fence_marker, fence_length)
+            if closing_length:
+                fence_marker = None
+                fence_length = 0
+                index += closing_length
+            else:
+                index += 1
             continue
-        if source.startswith("<http://", index) or source.startswith("<https://", index):
+
+        if inline_code_ticks is not None:
+            if character == "`" and not is_escaped(index):
+                length = marker_run(index, "`")
+                if length == inline_code_ticks:
+                    inline_code_ticks = None
+                index += length
+            else:
+                index += 1
+            continue
+
+        if character in "`~" and not is_escaped(index) and is_fence_indent(index):
+            length = marker_run(index, character)
+            if length >= 3:
+                fence_marker = character
+                fence_length = length
+                index += length
+                continue
+
+        if character == "`" and not is_escaped(index):
+            inline_code_ticks = marker_run(index, "`")
+            index += inline_code_ticks
+            continue
+
+        if (
+            not is_escaped(index)
+            and (source.startswith("<http://", index) or source.startswith("<https://", index))
+        ):
             close = source.find(">", index + 1)
-            if close >= 0:
+            destination = source[index + 1 : close] if close >= 0 else ""
+            if close >= 0 and destination and not any(
+                character.isspace() or character in "<>" for character in destination
+            ):
                 mask(index, close + 1)
                 index = close + 1
                 continue
+
+        if character == "[" and not is_escaped(index):
+            bracket_stack.append(index)
+        elif character == "]" and not is_escaped(index):
+            opener = bracket_stack.pop() if bracket_stack else None
+            if opener is not None and index + 1 < len(source) and source[index + 1] == "(":
+                end = destination_end(index + 1)
+                if end is not None:
+                    mask(index + 1, end)
+                    index = end
+                    continue
         index += 1
     return "".join(masked)
 
