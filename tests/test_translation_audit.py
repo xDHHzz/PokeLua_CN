@@ -652,6 +652,679 @@ class TranslationAuditTests(unittest.TestCase):
                     )
                 )
 
+    def test_commonmark_reference_definitions_respect_block_context_and_visible_titles(self):
+        approved = (ROOT / "README.md").read_text(encoding="utf-8")
+        valid_definitions = (
+            "[InvisibleAtBof]: https://example.invalid/InvisibleBofDestination\n"
+            + approved
+            + "\n[InvisibleStandalone]: https://example.invalid/InvisibleStandaloneDestination\n"
+            + "[InvisibleConsecutive]: <https://example.invalid/InvisibleConsecutiveDestination>\n"
+            + "\n# \u6807\u9898\n"
+            + "[InvisibleAfterHeading]: https://example.invalid/InvisibleHeadingDestination\n"
+            + "\n* * *\n"
+            + "[InvisibleAfterRule]: https://example.invalid/InvisibleRuleDestination\n"
+            + "\n\u6807\u9898\n===\n"
+            + "[InvisibleAfterSetext]: https://example.invalid/InvisibleSetextDestination\n"
+            + "\n[InvisibleNextLine]:\n  <https://example.invalid/InvisibleNextLineDestination>\n"
+            + "\n[\nInvisibleMultilineLabel\n]: https://example.invalid/InvisibleMultilineLabelDestination\n"
+            + "\n[InvisibleEscapedReference]: https://example.invalid/foo\\(InvisibleEscapedReferenceDestination\\)\n"
+            + "\n[InvisibleBalancedReference]: https://example.invalid/foo(InvisibleBalancedReferenceDestination)\n"
+            + "\n[InvisibleEmptyDestination]: <> \"\u6807\u9898\"\n"
+            + "\n[InvisibleSameLineTitle]: https://example.invalid/InvisibleSameTitleDestination \"\u6807\u9898\"\n"
+            + "\n[InvisibleNextLineTitle]: https://example.invalid/InvisibleNextTitleDestination\n  '\u6807\u9898'\n"
+        )
+        visible_reference_titles = (
+            approved
+            + "\n[InvisibleReferenceSame]: https://example.invalid/InvisibleReferenceSameDestination \"UnapprovedReferenceTooltip\"\n"
+            + "\n[InvisibleReferenceNext]: https://example.invalid/InvisibleReferenceNextDestination\n  'UnapprovedReferenceNextTooltip'\n"
+            + "\n[InvisibleReferenceMulti]: https://example.invalid/InvisibleReferenceMultiDestination\n  (UnapprovedReferenceMultilineTooltip\nStillVisibleReferenceTooltip)\n"
+        )
+        malformed_definitions = (
+            approved
+            + "\n[MalformedTrailingDefinition]: https://example.invalid/VisibleMalformedDestination \"\u6807\u9898\" VisibleTrailingDefinition\n"
+            + "\n[MissingDestinationDefinition]:\n"
+            + "\n[TooManyBreaksDefinition]:\n\nVisibleAfterTooManyBreaks\n"
+            + "\n[UnclosedTitleDefinition]: https://example.invalid/VisibleUnclosedTitle \"VisibleUnclosedTitleText\n"
+            + "\n[UnbalancedDestinationDefinition]: VisibleUnbalanced_(path\n"
+            + "\n    [IndentedDefinition]: VisibleIndentedDefinition\n"
+            + "\nVisibleParagraphBeforeDefinition\n"
+            + "[DefinitionInsideParagraph]: https://example.invalid/VisibleParagraphDefinition \"VisibleParagraphDefinitionTitle\"\n"
+            + "\n[\u94fe\u63a5\n"
+            + "[DefinitionInsideOpenLabel]: VisibleOpenLabelDefinition\n"
+            + "\u8bf4\u660e](https://example.invalid/InvisibleOuterDestination)\n"
+        )
+        fallback_definition_title = (
+            approved
+            + "\n[InvisibleFallbackDefinition]: /invisible-fallback-destination\n"
+            + "\"VisibleFallbackTitle\" VisibleFallbackJunk\n"
+        )
+        results = self.audit_readme_variants(
+            {
+                "valid_definitions": valid_definitions,
+                "visible_reference_titles": visible_reference_titles,
+                "malformed_definitions": malformed_definitions,
+                "fallback_definition_title": fallback_definition_title,
+            }
+        )
+
+        self.assertEqual(results["valid_definitions"].errors, [])
+        for marker in (
+            "UnapprovedReferenceTooltip",
+            "UnapprovedReferenceNextTooltip",
+            "UnapprovedReferenceMultilineTooltip",
+            "StillVisibleReferenceTooltip",
+        ):
+            with self.subTest(kind="reference_title", marker=marker):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results["visible_reference_titles"].errors
+                    )
+                )
+        for hidden_syntax in (
+            "InvisibleReferenceSame",
+            "InvisibleReferenceSameDestination",
+            "InvisibleReferenceNext",
+            "InvisibleReferenceNextDestination",
+            "InvisibleReferenceMulti",
+            "InvisibleReferenceMultiDestination",
+        ):
+            with self.subTest(kind="reference_syntax", marker=hidden_syntax):
+                self.assertFalse(
+                    any(hidden_syntax in error for error in results["visible_reference_titles"].errors)
+                )
+        for marker in (
+            "MalformedTrailingDefinition",
+            "VisibleTrailingDefinition",
+            "MissingDestinationDefinition",
+            "TooManyBreaksDefinition",
+            "VisibleAfterTooManyBreaks",
+            "UnclosedTitleDefinition",
+            "VisibleUnclosedTitleText",
+            "UnbalancedDestinationDefinition",
+            "VisibleUnbalanced",
+            "IndentedDefinition",
+            "VisibleIndentedDefinition",
+            "DefinitionInsideParagraph",
+            "VisibleParagraphDefinitionTitle",
+            "DefinitionInsideOpenLabel",
+            "VisibleOpenLabelDefinition",
+        ):
+            with self.subTest(kind="malformed_definition", marker=marker):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results["malformed_definitions"].errors
+                    )
+                )
+        for marker in ("VisibleFallbackTitle", "VisibleFallbackJunk"):
+            with self.subTest(kind="fallback_definition_title", marker=marker):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results["fallback_definition_title"].errors
+                    )
+                )
+        for hidden_syntax in (
+            "InvisibleFallbackDefinition",
+            "invisible-fallback-destination",
+        ):
+            with self.subTest(kind="fallback_definition_syntax", marker=hidden_syntax):
+                self.assertFalse(
+                    any(
+                        hidden_syntax in error
+                        for error in results["fallback_definition_title"].errors
+                    )
+                )
+
+    def test_inline_link_payloads_require_commonmark_grammar_and_keep_titles_visible(self):
+        approved = (ROOT / "README.md").read_text(encoding="utf-8")
+        valid_destinations = (
+            approved
+            + "\n[\u94fe\u63a5](https://example.invalid/a_(InvisibleBalancedDestination))\n"
+            + "[\u94fe\u63a5](<https://example.invalid/InvisibleAngleDestination>)\n"
+            + "[\u94fe\u63a5](<bad InvisibleAngleSpace>)\n"
+            + "[\u94fe\u63a5](\"InvisibleGreedyUri\")\n"
+            + "[\u94fe\u63a5](\n  https://example.invalid/InvisibleOneEolDestination)\n"
+        )
+        visible_titles = (
+            approved
+            + "\n[\u94fe\u63a5](https://example.invalid/InvisibleTooltipDestination \"UnapprovedTooltip\")\n"
+            + "![\u56fe\u50cf](<https://example.invalid/InvisibleImageTooltipDestination> 'UnapprovedImageTooltip')\n"
+            + "[\u94fe\u63a5](<> \"UnapprovedTitleWithoutDestination\")\n"
+            + "[\u94fe\u63a5](/uri \"UnapprovedMultilineTooltip\nStillVisibleInlineTooltip\")\n"
+        )
+        malformed_payloads = (
+            approved
+            + "\n[\u94fe\u63a5](not a valid UnapprovedVisible)\n"
+            + "[\u94fe\u63a5](foo\n\nUnapprovedVisibleAfterBlank)\n"
+            + "[\u94fe\u63a5](<bad space> UnapprovedAngleExtra)\n"
+            + "[\u94fe\u63a5](/url UnapprovedBareTitle)\n"
+            + "[\u94fe\u63a5](/url \"\u6807\u9898\" UnapprovedExtra)\n"
+            + "[\u94fe\u63a5](\n\nUnapprovedTwoEolPayload)\n"
+            + "[\u94fe\u63a5](foo(and(UnapprovedUnbalanced))\n"
+            + "[\u94fe\u63a5](<https://bad\nUnapprovedAngleNewline>)\n"
+            + "[\u94fe\u63a5](<bad<Unapproved.NestedAngle>>)\n"
+            + "[\u94fe\u63a5](/url \"UnapprovedUnterminatedTitle)\n"
+        )
+        results = self.audit_readme_variants(
+            {
+                "valid_destinations": valid_destinations,
+                "visible_titles": visible_titles,
+                "malformed_payloads": malformed_payloads,
+            }
+        )
+
+        self.assertEqual(results["valid_destinations"].errors, [])
+        for marker in (
+            "UnapprovedTooltip",
+            "UnapprovedImageTooltip",
+            "UnapprovedTitleWithoutDestination",
+            "UnapprovedMultilineTooltip",
+            "StillVisibleInlineTooltip",
+        ):
+            with self.subTest(kind="inline_title", marker=marker):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results["visible_titles"].errors
+                    )
+                )
+        for hidden_uri in (
+            "InvisibleTooltipDestination",
+            "InvisibleImageTooltipDestination",
+        ):
+            with self.subTest(kind="inline_uri", marker=hidden_uri):
+                self.assertFalse(
+                    any(hidden_uri in error for error in results["visible_titles"].errors)
+                )
+        for marker in (
+            "UnapprovedVisible",
+            "UnapprovedVisibleAfterBlank",
+            "UnapprovedAngleExtra",
+            "UnapprovedBareTitle",
+            "UnapprovedExtra",
+            "UnapprovedTwoEolPayload",
+            "UnapprovedUnbalanced",
+            "UnapprovedAngleNewline",
+            "Unapproved.NestedAngle",
+            "UnapprovedUnterminatedTitle",
+        ):
+            with self.subTest(kind="malformed_inline_payload", marker=marker):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results["malformed_payloads"].errors
+                    )
+                )
+
+    def test_reference_link_second_labels_are_invisible_but_first_labels_remain_visible(self):
+        approved = (ROOT / "README.md").read_text(encoding="utf-8")
+        results = self.audit_readme_variants(
+            {
+                "reference_labels": (
+                    approved
+                    + "\n[\u4e2d\u6587][InvisibleReference]\n"
+                    + "![\u56fe\u50cf][InvisibleImageReference]\n"
+                    + "[UnapprovedRenderedLabel][InvisibleForVisibleLabel]\n"
+                    + "[\u4e2d\u6587][]\n\n"
+                    + "[\u4e2d\u6587][InvisibleSpaced   GapToken]\n"
+                    + "[\u4e2d\u6587][InvisibleCaseFold]\n"
+                    + "[\u4e2d\u6587] [VisibleSeparatedReference]\n"
+                    + "[\u4e2d\u6587][UndefinedReference]\n"
+                    + "[\u4e2d\u6587][EscapedMismatchVisible\\!]\n\n"
+                    + "[\u7532][\u4e59][InvisibleOverlappingReference]\n\n"
+                    + "[InvisibleReference]: /invisible-reference-destination\n"
+                    + "[InvisibleImageReference]: /invisible-image-reference-destination\n"
+                    + "[InvisibleForVisibleLabel]: /invisible-visible-label-destination\n"
+                    + "[invisiblespaced gaptoken]: /invisible-spaced-destination\n"
+                    + "[invisiblecasefold]: /invisible-case-destination\n"
+                    + "[VisibleSeparatedReference]: /visible-separated-destination\n"
+                    + "[EscapedMismatchVisible!]: /escaped-mismatch-destination\n"
+                    + "[InvisibleOverlappingReference]: /overlapping-reference-destination\n"
+                )
+            }
+        )["reference_labels"]
+
+        self.assertTrue(
+            any(
+                "unapproved visible English 'UnapprovedRenderedLabel'" in error
+                for error in results.errors
+            )
+        )
+        for hidden_label in (
+            "InvisibleReference",
+            "InvisibleImageReference",
+            "InvisibleForVisibleLabel",
+            "InvisibleSpaced",
+            "GapToken",
+            "InvisibleCaseFold",
+            "InvisibleOverlappingReference",
+        ):
+            with self.subTest(hidden_label=hidden_label):
+                self.assertFalse(any(hidden_label in error for error in results.errors))
+        for visible_label in (
+            "VisibleSeparatedReference",
+            "UndefinedReference",
+            "EscapedMismatchVisible",
+        ):
+            with self.subTest(visible_label=visible_label):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {visible_label!r}" in error
+                        for error in results.errors
+                    )
+                )
+
+    def test_markdown_block_context_and_nested_links_do_not_hide_visible_text(self):
+        approved = (ROOT / "README.md").read_text(encoding="utf-8")
+        code_and_fence_contexts = (
+            approved
+            + "\n\n    [IndentedCodeDefinition]: VisibleIndentedCodeDefinition\n"
+            + "\n\t[TabbedCodeDefinition]: VisibleTabbedCodeDefinition\n"
+            + "\n``` InvisibleFenceInfo\n"
+            + "[FencedDefinition]: VisibleFencedDefinition\n"
+            + "[\u94fe\u63a5](VisibleFencedInlinePayload)\n"
+            + "```\n"
+            + "\n[\u94fe\u63a5\n    \u8bf4\u660e](https://example.invalid/InvisibleParagraphContinuationDestination)\n"
+        )
+        html_contexts = (
+            approved
+            + "\n<!-- InvisibleHtmlComment -->\n"
+            + "<script data-name=\"InvisibleScriptAttribute\">\n"
+            + "[\u94fe\u63a5](VisibleInsideScriptHtml)\n"
+            + "</script>\n"
+            + "[\u94fe\u63a5](https://example.invalid/InvisibleAfterScriptHtml)\n"
+            + "\n<script>\n[\n</script>\n](UnapprovedAfterScript)\n"
+            + "\n<!--\n[\n-->\n](UnapprovedAfterComment)\n"
+            + "\n<div class=\"InvisibleDivAttribute\">\n"
+            + "[\u94fe\u63a5](VisibleInsideDivHtml)\n"
+            + "</div>\n"
+            + "[\u94fe\u63a5](VisibleStillInsideTypeSixHtml)\n\n"
+            + "[\u94fe\u63a5](https://example.invalid/InvisibleAfterHtmlBlank)\n"
+            + "\n\u6b63\u6587 <span class=\"InvisibleInlineAttribute\">UnapprovedHtmlInnerText</span>\n"
+            + "\u6b63\u6587 <span title=\"UnapprovedHtmlTooltip\">\u4e2d\u6587</span>\n"
+            + "<img alt='UnapprovedHtmlAlt' src='/InvisibleHtmlImageSource'>\n"
+            + "<input placeholder=\"UnapprovedHtmlPlaceholder\" value=\"UnapprovedHtmlValue\" aria-label=\"UnapprovedHtmlAriaLabel\">\n"
+        )
+        nested_links = (
+            approved
+            + "\n[\u5916\u5c42 [\u5185\u5c42](https://example.invalid/InvisibleInnerDestination)](UnapprovedOuterAfterInnerLink)\n"
+            + "[\u5916\u5c42 <https://example.invalid/InvisibleInnerAutolink>](UnapprovedOuterAfterAutolink)\n"
+            + "[\u5916\u5c42 [\u5185\u5c42][InvisibleInnerReference]](UnapprovedOuterAfterReference)\n"
+            + "[\u5916\u5c42 [\u5339\u914d\u6298\u53e0][]](UnapprovedOuterAfterCollapsedReference)\n"
+            + "[\u5916\u5c42 [\u5339\u914d\u5feb\u6377]](UnapprovedOuterAfterShortcutReference)\n"
+            + "[\u5916\u5c42 [\u672a\u5b9a\u4e49][UndefinedInnerReference]](https://example.invalid/InvisibleOuterAfterUndefinedFull)\n"
+            + "[\u5916\u5c42 [\u672a\u5b9a\u4e49]](https://example.invalid/InvisibleOuterAfterUndefinedShortcut)\n"
+            + "[\u5916\u5c42 [\u5df2\u5b9a\u4e49][UndefinedExplicitSecond]](https://example.invalid/InvisibleOuterAfterUndefinedSecond)\n"
+            + "[\u5916\u5c42 [\u7532][\u4e59][InvisibleNestedOverlappingReference]](UnapprovedOuterAfterOverlappingReference)\n"
+            + "[\u5916\u5c42 <InvisibleEmailLocal@InvisibleEmailDomain.invalid>](UnapprovedOuterAfterEmailAutolink)\n"
+            + "[\u5916\u5c42 <FTP://example.invalid/InvisibleNestedFtpAutolink>](UnapprovedOuterAfterFtpAutolink)\n"
+            + "[\u5916\u5c42 <HTTPS://example.invalid/InvisibleNestedUpperAutolink>](UnapprovedOuterAfterUpperAutolink)\n"
+            + "<HTTPS://example.invalid/InvisibleUpperAutolink>\n"
+            + "<ftp://example.invalid/InvisibleFtpAutolink>\n"
+            + "<InvisibleStandaloneEmail@InvisibleStandaloneDomain.invalid>\n"
+            + "![\u56fe\u50cf [\u5185\u5c42](https://example.invalid/InvisibleInnerWithinImage)](https://example.invalid/InvisibleOuterImageDestination)\n"
+            + "[\u5916\u5c42 ![\u56fe\u50cf](https://example.invalid/InvisibleNestedImageDestination)](https://example.invalid/InvisibleOuterLinkDestination)\n\n"
+            + "[InvisibleInnerReference]: /invisible-inner-reference-destination\n"
+            + "[\u5339\u914d\u6298\u53e0]: /invisible-collapsed-reference-destination\n"
+            + "[\u5339\u914d\u5feb\u6377]: /invisible-shortcut-reference-destination\n"
+            + "[\u5df2\u5b9a\u4e49]: /known-shortcut-destination\n"
+            + "[InvisibleNestedOverlappingReference]: /nested-overlapping-reference-destination\n"
+        )
+        blockquote_continuity = (
+            approved
+            + "\n> [\u94fe\u63a5\n"
+            + "> \u8bf4\u660e](https://example.invalid/InvisibleBlockquoteSoftDestination)\n"
+            + ">\n"
+            + "> [InvisibleQuoteReference]: https://example.invalid/InvisibleQuoteReferenceDestination\n\n"
+            + "[\u4e2d\u6587][InvisibleQuoteReference]\n"
+        )
+        results = self.audit_readme_variants(
+            {
+                "code_and_fence_contexts": code_and_fence_contexts,
+                "html_contexts": html_contexts,
+                "nested_links": nested_links,
+                "blockquote_continuity": blockquote_continuity,
+            }
+        )
+
+        for marker in (
+            "VisibleIndentedCodeDefinition",
+            "VisibleTabbedCodeDefinition",
+            "VisibleFencedDefinition",
+            "VisibleFencedInlinePayload",
+        ):
+            with self.subTest(kind="code_content", marker=marker):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results["code_and_fence_contexts"].errors
+                    )
+                )
+        for hidden_syntax in (
+            "InvisibleFenceInfo",
+            "InvisibleParagraphContinuationDestination",
+        ):
+            with self.subTest(kind="code_syntax", marker=hidden_syntax):
+                self.assertFalse(
+                    any(
+                        hidden_syntax in error
+                        for error in results["code_and_fence_contexts"].errors
+                    )
+                )
+
+        for marker in (
+            "VisibleInsideScriptHtml",
+            "UnapprovedAfterScript",
+            "UnapprovedAfterComment",
+            "VisibleInsideDivHtml",
+            "VisibleStillInsideTypeSixHtml",
+            "UnapprovedHtmlInnerText",
+            "UnapprovedHtmlTooltip",
+            "UnapprovedHtmlAlt",
+            "UnapprovedHtmlPlaceholder",
+            "UnapprovedHtmlValue",
+            "UnapprovedHtmlAriaLabel",
+        ):
+            with self.subTest(kind="html_content", marker=marker):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results["html_contexts"].errors
+                    )
+                )
+        for hidden_syntax in (
+            "InvisibleHtmlComment",
+            "InvisibleScriptAttribute",
+            "InvisibleAfterScriptHtml",
+            "InvisibleDivAttribute",
+            "InvisibleAfterHtmlBlank",
+            "InvisibleInlineAttribute",
+            "InvisibleHtmlImageSource",
+        ):
+            with self.subTest(kind="html_syntax", marker=hidden_syntax):
+                self.assertFalse(
+                    any(hidden_syntax in error for error in results["html_contexts"].errors)
+                )
+
+        for marker in (
+            "UnapprovedOuterAfterInnerLink",
+            "UnapprovedOuterAfterAutolink",
+            "UnapprovedOuterAfterReference",
+            "UnapprovedOuterAfterCollapsedReference",
+            "UnapprovedOuterAfterShortcutReference",
+            "UnapprovedOuterAfterOverlappingReference",
+            "UnapprovedOuterAfterEmailAutolink",
+            "UnapprovedOuterAfterFtpAutolink",
+            "UnapprovedOuterAfterUpperAutolink",
+        ):
+            with self.subTest(kind="invalid_outer_link", marker=marker):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results["nested_links"].errors
+                    )
+                )
+        for hidden_destination in (
+            "InvisibleInnerDestination",
+            "InvisibleInnerAutolink",
+            "InvisibleInnerReference",
+            "InvisibleInnerWithinImage",
+            "InvisibleOuterImageDestination",
+            "InvisibleNestedImageDestination",
+            "InvisibleOuterLinkDestination",
+            "InvisibleOuterAfterUndefinedFull",
+            "InvisibleOuterAfterUndefinedShortcut",
+            "InvisibleOuterAfterUndefinedSecond",
+            "InvisibleNestedOverlappingReference",
+            "InvisibleEmailLocal",
+            "InvisibleEmailDomain.invalid",
+            "InvisibleNestedFtpAutolink",
+            "InvisibleNestedUpperAutolink",
+            "InvisibleUpperAutolink",
+            "InvisibleFtpAutolink",
+            "InvisibleStandaloneEmail",
+            "InvisibleStandaloneDomain.invalid",
+        ):
+            with self.subTest(kind="valid_nested_destination", marker=hidden_destination):
+                self.assertFalse(
+                    any(hidden_destination in error for error in results["nested_links"].errors)
+                )
+        self.assertTrue(
+            any(
+                "unapproved visible English 'UndefinedInnerReference'" in error
+                for error in results["nested_links"].errors
+            )
+        )
+        self.assertTrue(
+            any(
+                "unapproved visible English 'UndefinedExplicitSecond'" in error
+                for error in results["nested_links"].errors
+            )
+        )
+
+        self.assertEqual(results["blockquote_continuity"].errors, [])
+
+    def test_list_container_continuations_and_reference_definitions_stay_structural(self):
+        approved = (ROOT / "README.md").read_text(encoding="utf-8")
+        results = self.audit_readme_variants(
+            {
+                "multiline_list_link": (
+                    approved
+                    + "\n- [\u94fe\u63a5\n"
+                    + "  \u8bf4\u660e](https://example.invalid/InvisibleListContinuationDestination)\n"
+                ),
+                "list_reference_definition": (
+                    approved
+                    + "\n- [InvisibleListReference]: /invisible-list-reference-destination\n\n"
+                    + "[\u4e2d\u6587][InvisibleListReference]\n"
+                ),
+                "ordered_list_reference_definition": (
+                    approved
+                    + "\n2. [InvisibleOrderedListReference]: /invisible-ordered-list-reference-destination\n\n"
+                    + "[\u4e2d\u6587][InvisibleOrderedListReference]\n"
+                ),
+                "empty_list_reference_definition": (
+                    approved
+                    + "\n-\n"
+                    + "  [InvisibleEmptyListReference]: /invisible-empty-list-reference-destination\n\n"
+                    + "[\u4e2d\u6587][InvisibleEmptyListReference]\n"
+                ),
+                "unordered_indented_code": (
+                    approved
+                    + "\n-     [UnorderedCodeDefinition]: UnapprovedUnorderedCodeDefinition\n"
+                ),
+                "ordered_indented_code": (
+                    approved
+                    + "\n1.     [OrderedCodeDefinition]: UnapprovedOrderedCodeDefinition\n"
+                ),
+                "ordered_sibling_boundary": (
+                    approved
+                    + "\n1. [\n"
+                    + "2. ](UnapprovedAcrossOrderedItems)\n"
+                ),
+                "nested_list_boundary": (
+                    approved
+                    + "\n10. [\n"
+                    + "    - nested\n"
+                    + "](UnapprovedAcrossNestedList)\n"
+                ),
+                "nested_ordered_two_continuation": (
+                    approved
+                    + "\n- [\u94fe\u63a5\n"
+                    + "  2. \u8bf4\u660e](https://example.invalid/InvisibleNestedOrderedTwoContinuation)\n"
+                ),
+                "nested_empty_bullet_continuation": (
+                    approved
+                    + "\n- [\u94fe\u63a5\n"
+                    + "  +\n"
+                    + "  \u8bf4\u660e](https://example.invalid/InvisibleNestedEmptyBulletContinuation)\n"
+                ),
+                "nested_empty_ordered_continuation": (
+                    approved
+                    + "\n- [\u94fe\u63a5\n"
+                    + "  1.\n"
+                    + "  \u8bf4\u660e](https://example.invalid/InvisibleNestedEmptyOrderedContinuation)\n"
+                ),
+                "nested_ordered_one_boundary": (
+                    approved
+                    + "\n- [\n"
+                    + "  1. \u9879\u76ee\n"
+                    + "](UnapprovedAcrossNestedOrderedOne)\n"
+                ),
+                "wide_list_reference_definition": (
+                    approved
+                    + "\n10. \u9996\u6bb5\n\n"
+                    + "    [InvisibleWideListReference]: /invisible-wide-list-reference-destination\n\n"
+                    + "[\u4e2d\u6587][InvisibleWideListReference]\n"
+                ),
+                "parent_list_reference_definition": (
+                    approved
+                    + "\n10. \u5916\u5c42\n"
+                    + "    - \u5d4c\u5957\n\n"
+                    + "    [InvisibleParentListReference]: /invisible-parent-list-reference-destination\n\n"
+                    + "[\u4e2d\u6587][InvisibleParentListReference]\n"
+                ),
+                "parent_list_multiline_link": (
+                    approved
+                    + "\n10. \u5916\u5c42\n"
+                    + "    - \u5d4c\u5957\n\n"
+                    + "    [\u94fe\u63a5\n"
+                    + "    \u8bf4\u660e](https://example.invalid/InvisibleParentListLinkDestination)\n"
+                ),
+                "stale_list_after_heading": (
+                    approved
+                    + "\n10. \u5217\u8868\n\n"
+                    + "# \u6807\u9898\n"
+                    + "    [HeadingCodeDefinition]: UnapprovedAfterHeadingCode\n"
+                ),
+                "stale_list_after_rule": (
+                    approved
+                    + "\n10. \u5217\u8868\n\n"
+                    + "---\n"
+                    + "    [RuleCodeDefinition]: UnapprovedAfterRuleCode\n"
+                ),
+                "stale_list_after_spaced_asterisk_rule": (
+                    approved
+                    + "\n10. \u5217\u8868\n\n"
+                    + "* * *\n"
+                    + "    [SpacedAsteriskRuleCodeDefinition]: UnapprovedAfterSpacedAsteriskRuleCode\n"
+                ),
+                "stale_list_after_spaced_dash_rule": (
+                    approved
+                    + "\n10. \u5217\u8868\n\n"
+                    + "- - -\n"
+                    + "    [SpacedDashRuleCodeDefinition]: UnapprovedAfterSpacedDashRuleCode\n"
+                ),
+                "stale_list_after_fence": (
+                    approved
+                    + "\n10. \u5217\u8868\n\n"
+                    + "```\n\u4ee3\u7801\n```\n"
+                    + "    [FenceCodeDefinition]: UnapprovedAfterFenceCode\n"
+                ),
+                "lazy_blockquote_link": (
+                    approved
+                    + "\n> [\u94fe\u63a5\n"
+                    + "\u8bf4\u660e](https://example.invalid/InvisibleLazyQuoteDestination)\n"
+                ),
+                "outdented_block_boundary": (
+                    approved
+                    + "\n> [\n"
+                    + "# \u6807\u9898\n"
+                    + "](UnapprovedAfterOutdentedHeading)\n"
+                ),
+            }
+        )
+
+        for name in (
+            "multiline_list_link",
+            "list_reference_definition",
+            "ordered_list_reference_definition",
+            "empty_list_reference_definition",
+            "wide_list_reference_definition",
+            "parent_list_reference_definition",
+            "parent_list_multiline_link",
+            "nested_ordered_two_continuation",
+            "nested_empty_bullet_continuation",
+            "nested_empty_ordered_continuation",
+            "lazy_blockquote_link",
+        ):
+            with self.subTest(name=name):
+                self.assertEqual(results[name].errors, [])
+        self.assertTrue(
+            any(
+                "unapproved visible English 'UnapprovedAfterOutdentedHeading'" in error
+                for error in results["outdented_block_boundary"].errors
+            )
+        )
+        for name, marker in (
+            ("unordered_indented_code", "UnapprovedUnorderedCodeDefinition"),
+            ("ordered_indented_code", "UnapprovedOrderedCodeDefinition"),
+            ("ordered_sibling_boundary", "UnapprovedAcrossOrderedItems"),
+            ("nested_list_boundary", "UnapprovedAcrossNestedList"),
+            ("nested_ordered_one_boundary", "UnapprovedAcrossNestedOrderedOne"),
+            ("stale_list_after_heading", "UnapprovedAfterHeadingCode"),
+            ("stale_list_after_rule", "UnapprovedAfterRuleCode"),
+            (
+                "stale_list_after_spaced_asterisk_rule",
+                "UnapprovedAfterSpacedAsteriskRuleCode",
+            ),
+            (
+                "stale_list_after_spaced_dash_rule",
+                "UnapprovedAfterSpacedDashRuleCode",
+            ),
+            ("stale_list_after_fence", "UnapprovedAfterFenceCode"),
+        ):
+            with self.subTest(name=name):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results[name].errors
+                    )
+                )
+
+    def test_list_item_fences_and_html_use_block_lifecycle(self):
+        approved = (ROOT / "README.md").read_text(encoding="utf-8")
+        results = self.audit_readme_variants(
+            {
+                "unclosed_fence": (
+                    approved
+                    + "\n- ```\n"
+                    + "  [\u94fe\u63a5](VisibleListFencedPayload)\n"
+                ),
+                "closed_fence_with_info": (
+                    approved
+                    + "\n- ```VisibleFenceInfo\n"
+                    + "  \u4e2d\u6587\n"
+                    + "  ```\n"
+                ),
+                "type_six_html": (
+                    approved
+                    + "\n- <div>\n"
+                    + "  [\u94fe\u63a5](VisibleListHtmlPayload)\n\n"
+                ),
+            }
+        )
+
+        for name, marker in (
+            ("unclosed_fence", "VisibleListFencedPayload"),
+            ("type_six_html", "VisibleListHtmlPayload"),
+        ):
+            with self.subTest(name=name):
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {marker!r}" in error
+                        for error in results[name].errors
+                    )
+                )
+        self.assertFalse(
+            any(
+                "VisibleFenceInfo" in error
+                for error in results["closed_fence_with_info"].errors
+            )
+        )
+
     def test_readme_invalid_utf8_and_bom_are_report_errors(self):
         approved = (ROOT / "README.md").read_bytes()
         results = self.audit_readme_variants(

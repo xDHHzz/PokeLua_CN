@@ -1218,267 +1218,975 @@ def _unchanged_english_findings(
     return errors, warnings
 
 
-def _mask_markdown_destinations(source: str) -> str:
-    masked = list(source)
+_MARKDOWN_ESCAPABLE_PUNCTUATION = frozenset(
+    "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+)
+_MARKDOWN_URI_AUTOLINK_RE = re.compile(
+    r"[A-Za-z][A-Za-z0-9+.-]{1,31}:[^\x00-\x20<>]*\Z"
+)
+_MARKDOWN_EMAIL_AUTOLINK_RE = re.compile(
+    r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@"
+    r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+    r"(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\Z"
+)
 
-    def mask(start: int, end: int) -> None:
-        for position in range(start, end):
-            if masked[position] not in "\r\n":
-                masked[position] = " "
 
-    def is_escaped(position: int) -> bool:
-        backslashes = 0
-        position -= 1
-        while position >= 0 and source[position] == "\\":
-            backslashes += 1
-            position -= 1
-        return backslashes % 2 == 1
+@dataclass(frozen=True)
+class _MarkdownSpacing:
+    end: int
+    horizontal: bool
+    line_endings: int
 
-    def marker_run(position: int, marker: str) -> int:
-        end = position
-        while end < len(source) and source[end] == marker:
-            end += 1
-        return end - position
 
-    def is_fence_indent(position: int) -> bool:
-        line_start = source.rfind("\n", 0, position) + 1
-        prefix = source[line_start:position]
-        return len(prefix) <= 3 and not prefix.strip(" ")
+@dataclass(frozen=True)
+class _MarkdownLabel:
+    end: int
+    value: str
 
-    def is_blank_line_end(position: int) -> bool:
-        if source[position] != "\n":
-            return False
-        line_start = source.rfind("\n", 0, position) + 1
-        return not source[line_start:position].strip(" \t\r")
 
-    def is_markdown_block_start(position: int) -> bool:
-        if position > 0 and source[position - 1] != "\n":
-            return False
-        line_end = source.find("\n", position)
-        if line_end < 0:
-            line_end = len(source)
-        line = source[position:line_end].rstrip("\r")
+@dataclass(frozen=True)
+class _MarkdownDestination:
+    start: int
+    end: int
 
-        cursor = 0
-        indentation = 0
-        while cursor < len(line) and line[cursor] in " \t":
-            if line[cursor] == " ":
-                indentation += 1
-            else:
-                indentation += 4 - indentation % 4
+
+@dataclass(frozen=True)
+class _MarkdownTitle:
+    end: int
+    opener: int
+    closer: int
+
+
+@dataclass(frozen=True)
+class _MarkdownReferenceDefinition:
+    end: int
+    normalized_label: str
+    mask_spans: tuple[tuple[int, int], ...]
+
+
+@dataclass(frozen=True)
+class _MarkdownInlinePayload:
+    end: int
+    mask_spans: tuple[tuple[int, int], ...]
+
+
+@dataclass(frozen=True)
+class _MarkdownRawHtml:
+    end: int
+    mask_spans: tuple[tuple[int, int], ...]
+
+
+@dataclass(frozen=True)
+class _MarkdownLine:
+    start: int
+    body_end: int
+    end: int
+    quote_depth: int
+    content_start: int
+
+
+def _markdown_line_ending_end(source: str, position: int) -> int | None:
+    if position >= len(source):
+        return None
+    if source[position] == "\n":
+        return position + 1
+    if source[position] == "\r":
+        return position + 2 if source.startswith("\r\n", position) else position + 1
+    return None
+
+
+def _consume_markdown_spacing(source: str, position: int) -> _MarkdownSpacing:
+    cursor = position
+    horizontal = False
+    line_endings = 0
+    while cursor < len(source):
+        if source[cursor] in " \t":
+            horizontal = True
             cursor += 1
-            if indentation >= 4:
-                return False
+            continue
+        ending = _markdown_line_ending_end(source, cursor)
+        if ending is None or line_endings == 1:
+            break
+        line_endings = 1
+        cursor = ending
+    return _MarkdownSpacing(cursor, horizontal, line_endings)
 
-        content = line[cursor:]
-        if not content:
-            return False
-        if re.match(r"#{1,6}(?:[ \t]+|$)", content):
-            return True
-        if re.fullmatch(r"(?:=+|-+)[ \t]*", content):
-            return True
 
-        compact = content.replace(" ", "").replace("\t", "")
-        if (
-            len(compact) >= 3
-            and compact[0] in "*-_"
-            and compact == compact[0] * len(compact)
-        ):
-            return True
-        if content.startswith(">"):
-            return True
-        if re.match(r"[*+-][ \t]+(?=\S)", content):
-            return True
-        ordered_list = re.match(r"(\d{1,9})[.)][ \t]+(?=\S)", content)
-        if ordered_list and int(ordered_list.group(1)) == 1:
-            return True
+def _markdown_is_escaped(source: str, position: int) -> bool:
+    backslashes = 0
+    cursor = position - 1
+    while cursor >= 0 and source[cursor] == "\\":
+        backslashes += 1
+        cursor -= 1
+    return backslashes % 2 == 1
 
-        if content.startswith(("<!--", "<?", "<![CDATA[")):
-            return True
-        if re.match(r"<![A-Za-z]", content):
-            return True
-        raw_html_tag = re.match(
-            r"<([A-Za-z][A-Za-z0-9-]*)(?=[ \t]|>|$)", content
-        )
-        if (
-            raw_html_tag
-            and raw_html_tag.group(1).casefold() in _MARKDOWN_RAW_HTML_TAGS
-        ):
-            return True
-        block_html_tag = re.match(
-            r"</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t]|>|/>|$)", content
-        )
-        return bool(
-            block_html_tag
-            and block_html_tag.group(1).casefold() in _MARKDOWN_HTML_BLOCK_TAGS
-        )
 
-    def is_fence_close(position: int, marker: str, minimum: int) -> int:
-        if source[position] != marker or is_escaped(position) or not is_fence_indent(position):
-            return 0
-        length = marker_run(position, marker)
-        if length < minimum:
-            return 0
-        line_end = source.find("\n", position + length)
-        if line_end < 0:
-            line_end = len(source)
-        return length if not source[position + length : line_end].strip(" \t\r") else 0
+def _parse_markdown_label(
+    source: str,
+    position: int,
+    *,
+    allow_empty: bool = False,
+) -> _MarkdownLabel | None:
+    if position >= len(source) or source[position] != "[":
+        return None
+    cursor = position + 1
+    value_start = cursor
+    nonblank = False
+    characters = 0
+    while cursor < len(source):
+        character = source[cursor]
+        if character == "[" and not _markdown_is_escaped(source, cursor):
+            return None
+        if character == "]" and not _markdown_is_escaped(source, cursor):
+            if characters > 999 or (not allow_empty and not nonblank):
+                return None
+            return _MarkdownLabel(cursor + 1, source[value_start:cursor])
+        if character not in " \t\r\n":
+            nonblank = True
+        characters += 1
+        if characters > 999:
+            return None
+        cursor += 1
+    return None
 
-    def destination_end(open_parenthesis: int) -> int | None:
-        cursor = open_parenthesis + 1
-        depth = 1
+
+def _normalize_markdown_label(value: str) -> str:
+    return re.sub(r"[ \t\r\n]+", " ", value).strip().casefold()
+
+
+def _parse_markdown_destination(
+    source: str,
+    position: int,
+) -> _MarkdownDestination | None:
+    if position >= len(source):
+        return None
+    if source[position] == "<":
+        cursor = position + 1
         while cursor < len(source):
-            if source[cursor] == "\\" and cursor + 1 < len(source):
-                cursor += 2
-                continue
-            if source[cursor] == "(":
-                depth += 1
-            elif source[cursor] == ")":
-                depth -= 1
-                if depth == 0:
-                    return cursor + 1
+            character = source[cursor]
+            if character in "\r\n" or (
+                character == "<" and not _markdown_is_escaped(source, cursor)
+            ):
+                return None
+            if character == ">" and not _markdown_is_escaped(source, cursor):
+                return _MarkdownDestination(position, cursor + 1)
             cursor += 1
         return None
 
-    def standalone_reference_destination(position: int) -> tuple[int, int] | None:
-        if position > 0 and source[position - 1] != "\n":
-            return None
-        if position > 0:
-            previous_line_end = position - 1
-            previous_line_start = source.rfind("\n", 0, previous_line_end) + 1
-            if source[previous_line_start:previous_line_end].strip(" \t\r"):
+    cursor = position
+    depth = 0
+    while cursor < len(source):
+        character = source[cursor]
+        codepoint = ord(character)
+        if character == " " or codepoint < 32 or codepoint == 127:
+            break
+        if (
+            character == "\\"
+            and cursor + 1 < len(source)
+            and source[cursor + 1] in _MARKDOWN_ESCAPABLE_PUNCTUATION
+        ):
+            cursor += 2
+            continue
+        if character == "(":
+            depth += 1
+        elif character == ")":
+            if depth == 0:
+                break
+            depth -= 1
+        cursor += 1
+    if cursor == position or depth:
+        return None
+    return _MarkdownDestination(position, cursor)
+
+
+def _parse_markdown_title(source: str, position: int) -> _MarkdownTitle | None:
+    if position >= len(source) or source[position] not in "\"'(":
+        return None
+    opener = source[position]
+    closer = ")" if opener == "(" else opener
+    cursor = position + 1
+    line_nonblank = True
+    while cursor < len(source):
+        ending = _markdown_line_ending_end(source, cursor)
+        if ending is not None:
+            if not line_nonblank:
                 return None
+            line_nonblank = False
+            cursor = ending
+            continue
 
-        line_end = source.find("\n", position)
-        if line_end < 0:
-            line_end = len(source)
-        line = source[position:line_end].rstrip("\r")
-        definition = re.match(
-            r" {0,3}\[(?:\\.|[^\[\]\\])+\]:[ \t]*", line
+        character = source[cursor]
+        if (
+            character == "\\"
+            and cursor + 1 < len(source)
+            and source[cursor + 1] in _MARKDOWN_ESCAPABLE_PUNCTUATION
+        ):
+            line_nonblank = True
+            cursor += 2
+            continue
+        if opener == "(" and character == "(":
+            return None
+        if character == closer:
+            return _MarkdownTitle(cursor + 1, position, cursor)
+        if character not in " \t":
+            line_nonblank = True
+        cursor += 1
+    return None
+
+
+def _markdown_line_finish(source: str, position: int) -> int | None:
+    cursor = position
+    while cursor < len(source) and source[cursor] in " \t":
+        cursor += 1
+    if cursor == len(source):
+        return cursor
+    ending = _markdown_line_ending_end(source, cursor)
+    return ending
+
+
+def _parse_markdown_reference_definition(
+    source: str,
+    position: int,
+) -> _MarkdownReferenceDefinition | None:
+    cursor = position
+    indentation = 0
+    while cursor < len(source) and source[cursor] == " " and indentation < 4:
+        indentation += 1
+        cursor += 1
+    if indentation > 3 or (cursor < len(source) and source[cursor] == "\t"):
+        return None
+
+    label_start = cursor
+    label = _parse_markdown_label(source, label_start)
+    if label is None or label.end >= len(source) or source[label.end] != ":":
+        return None
+    colon_end = label.end + 1
+    before_destination = _consume_markdown_spacing(source, colon_end)
+    destination = _parse_markdown_destination(source, before_destination.end)
+    if destination is None:
+        return None
+
+    after_destination = destination.end
+    horizontal_end = after_destination
+    while horizontal_end < len(source) and source[horizontal_end] in " \t":
+        horizontal_end += 1
+    same_line_title = horizontal_end > after_destination and (
+        horizontal_end < len(source) and source[horizontal_end] in "\"'("
+    )
+    title: _MarkdownTitle | None = None
+    definition_end: int | None = None
+
+    if same_line_title:
+        title = _parse_markdown_title(source, horizontal_end)
+        if title is None:
+            return None
+        definition_end = _markdown_line_finish(source, title.end)
+        if definition_end is None:
+            return None
+    elif horizontal_end == len(source):
+        definition_end = horizontal_end
+    else:
+        destination_line_end = _markdown_line_ending_end(source, horizontal_end)
+        if destination_line_end is None:
+            return None
+        no_title_end = destination_line_end
+        next_cursor = destination_line_end
+        next_indentation = 0
+        while next_cursor < len(source) and source[next_cursor] in " \t":
+            next_indentation += 1
+            next_cursor += 1
+        if next_cursor < len(source) and source[next_cursor] in "\"'(":
+            candidate = _parse_markdown_title(source, next_cursor)
+            if candidate is not None:
+                candidate_end = _markdown_line_finish(source, candidate.end)
+                if candidate_end is not None:
+                    title = candidate
+                    definition_end = candidate_end
+        if definition_end is None:
+            definition_end = no_title_end
+
+    spans: list[tuple[int, int]] = [
+        (label_start, colon_end),
+        (destination.start, destination.end),
+    ]
+    if title is not None:
+        spans.extend(((title.opener, title.opener + 1), (title.closer, title.closer + 1)))
+    return _MarkdownReferenceDefinition(
+        definition_end,
+        _normalize_markdown_label(label.value),
+        tuple(spans),
+    )
+
+
+def _parse_markdown_inline_payload(
+    source: str,
+    open_parenthesis: int,
+) -> _MarkdownInlinePayload | None:
+    if open_parenthesis >= len(source) or source[open_parenthesis] != "(":
+        return None
+    leading = _consume_markdown_spacing(source, open_parenthesis + 1)
+    cursor = leading.end
+    if cursor < len(source) and source[cursor] == ")":
+        return _MarkdownInlinePayload(
+            cursor + 1,
+            ((open_parenthesis, open_parenthesis + 1), (cursor, cursor + 1)),
         )
-        if definition is None:
+
+    destination = _parse_markdown_destination(source, cursor)
+    if destination is None:
+        return None
+    cursor = destination.end
+    title: _MarkdownTitle | None = None
+    if cursor >= len(source):
+        return None
+    if source[cursor] != ")":
+        if source[cursor] not in " \t\r\n":
+            return None
+        separator = _consume_markdown_spacing(source, cursor)
+        cursor = separator.end
+        if cursor < len(source) and source[cursor] in "\"'(":
+            title = _parse_markdown_title(source, cursor)
+            if title is None:
+                return None
+            trailing = _consume_markdown_spacing(source, title.end)
+            cursor = trailing.end
+        if cursor >= len(source) or source[cursor] != ")":
             return None
 
-        start = position + definition.end()
-        if start >= line_end or source[start] in "\r\n":
-            return None
-        if source[start] == "<":
-            cursor = start + 1
-            while cursor < line_end:
-                if source[cursor] == "\\" and cursor + 1 < line_end:
-                    cursor += 2
-                    continue
-                if source[cursor] == ">":
-                    return start, cursor + 1
-                if source[cursor] in "<\r\n":
-                    return None
-                cursor += 1
-            return None
+    spans: list[tuple[int, int]] = [
+        (open_parenthesis, open_parenthesis + 1),
+        (destination.start, destination.end),
+        (cursor, cursor + 1),
+    ]
+    if title is not None:
+        spans.extend(((title.opener, title.opener + 1), (title.closer, title.closer + 1)))
+    return _MarkdownInlinePayload(cursor + 1, tuple(spans))
 
+
+def _parse_markdown_raw_html(source: str, position: int) -> _MarkdownRawHtml | None:
+    if not source.startswith("<", position):
+        return None
+    visible_spans: list[tuple[int, int]] = []
+
+    def finish(end: int) -> _MarkdownRawHtml:
+        mask_spans: list[tuple[int, int]] = []
+        cursor = position
+        for visible_start, visible_end in sorted(visible_spans):
+            if cursor < visible_start:
+                mask_spans.append((cursor, visible_start))
+            cursor = visible_end
+        if cursor < end:
+            mask_spans.append((cursor, end))
+        return _MarkdownRawHtml(end, tuple(mask_spans))
+
+    if source.startswith("<!--", position):
+        end = source.find("-->", position + 4)
+        return None if end < 0 else finish(end + 3)
+    if source.startswith("<![CDATA[", position):
+        end = source.find("]]>", position + 9)
+        return None if end < 0 else finish(end + 3)
+    if source.startswith("<?", position):
+        end = source.find("?>", position + 2)
+        return None if end < 0 else finish(end + 2)
+    if position + 2 < len(source) and source.startswith("<!", position) and source[position + 2].isalpha():
+        end = source.find(">", position + 3)
+        return None if end < 0 else finish(end + 1)
+
+    cursor = position + 1
+    closing = cursor < len(source) and source[cursor] == "/"
+    if closing:
+        cursor += 1
+    name = re.match(r"[A-Za-z][A-Za-z0-9-]*", source[cursor:])
+    if name is None:
+        return None
+    cursor += name.end()
+    if closing:
+        spacing = _consume_markdown_spacing(source, cursor)
+        return (
+            finish(spacing.end + 1)
+            if spacing.end < len(source) and source[spacing.end] == ">"
+            else None
+        )
+
+    while cursor < len(source):
+        if source[cursor] == ">":
+            return finish(cursor + 1)
+        if source.startswith("/>", cursor):
+            return finish(cursor + 2)
+        if source[cursor] not in " \t\r\n":
+            return None
+        spacing = _consume_markdown_spacing(source, cursor)
+        cursor = spacing.end
+        if cursor < len(source) and source[cursor] == ">":
+            return finish(cursor + 1)
+        if source.startswith("/>", cursor):
+            return finish(cursor + 2)
+        attribute = re.match(r"[A-Za-z_:][A-Za-z0-9_.:-]*", source[cursor:])
+        if attribute is None:
+            return None
+        attribute_name = attribute.group().casefold()
+        cursor += attribute.end()
+        before_equals = _consume_markdown_spacing(source, cursor)
+        if before_equals.end >= len(source) or source[before_equals.end] != "=":
+            continue
+        after_equals = _consume_markdown_spacing(source, before_equals.end + 1)
+        cursor = after_equals.end
+        if cursor >= len(source):
+            return None
+        if source[cursor] in "\"'":
+            quote = source[cursor]
+            close = source.find(quote, cursor + 1)
+            if close < 0:
+                return None
+            if attribute_name in {"alt", "aria-label", "placeholder", "title", "value"}:
+                visible_spans.append((cursor + 1, close))
+            cursor = close + 1
+            continue
+        value_start = cursor
+        while cursor < len(source) and source[cursor] not in " \t\r\n\"'=<>`":
+            cursor += 1
+        if cursor == value_start:
+            return None
+        if attribute_name in {"alt", "aria-label", "placeholder", "title", "value"}:
+            visible_spans.append((value_start, cursor))
+    return None
+
+
+def _markdown_raw_html_end(source: str, position: int) -> int | None:
+    raw_html = _parse_markdown_raw_html(source, position)
+    return None if raw_html is None else raw_html.end
+
+
+def _markdown_autolink_end(source: str, position: int) -> int | None:
+    if position >= len(source) or source[position] != "<":
+        return None
+    close = source.find(">", position + 1)
+    if close < 0:
+        return None
+    value = source[position + 1 : close]
+    if _MARKDOWN_URI_AUTOLINK_RE.fullmatch(value) or _MARKDOWN_EMAIL_AUTOLINK_RE.fullmatch(value):
+        return close + 1
+    return None
+
+
+def _mask_markdown_destinations(source: str) -> str:
+    """Mask non-rendered Markdown syntax without hiding auditable text."""
+
+    masked = list(source)
+
+    def mask_source(start: int, end: int) -> None:
+        for position in range(start, min(end, len(masked))):
+            if masked[position] not in "\r\n":
+                masked[position] = " "
+
+    def mask_virtual(
+        mapping: list[int],
+        spans: Iterable[tuple[int, int]],
+    ) -> None:
+        for start, end in spans:
+            for virtual_position in range(start, min(end, len(mapping))):
+                source_position = mapping[virtual_position]
+                if masked[source_position] not in "\r\n":
+                    masked[source_position] = " "
+
+    def quote_prefix(start: int, body_end: int) -> tuple[int, int]:
         cursor = start
         depth = 0
-        while cursor < line_end and source[cursor] not in " \t\r":
-            if source[cursor] == "\\" and cursor + 1 < line_end:
-                cursor += 2
-                continue
-            if source[cursor] == "(":
-                depth += 1
-            elif source[cursor] == ")":
-                if depth == 0:
-                    break
-                depth -= 1
+        while cursor < body_end:
+            candidate = cursor
+            spaces = 0
+            while candidate < body_end and source[candidate] == " " and spaces < 3:
+                candidate += 1
+                spaces += 1
+            if candidate >= body_end or source[candidate] != ">":
+                break
+            depth += 1
+            cursor = candidate + 1
+            if cursor < body_end and source[cursor] in " \t":
+                cursor += 1
+        return depth, cursor if depth else start
+
+    lines: list[_MarkdownLine] = []
+    position = 0
+    while position < len(source):
+        body_end = position
+        while body_end < len(source) and source[body_end] not in "\r\n":
+            body_end += 1
+        ending = _markdown_line_ending_end(source, body_end)
+        line_end = body_end if ending is None else ending
+        depth, content_start = quote_prefix(position, body_end)
+        lines.append(_MarkdownLine(position, body_end, line_end, depth, content_start))
+        position = line_end
+
+    def indentation(text: str) -> tuple[int, int]:
+        cursor = 0
+        columns = 0
+        while cursor < len(text) and text[cursor] in " \t":
+            if text[cursor] == " ":
+                columns += 1
+            else:
+                columns += 4 - columns % 4
             cursor += 1
-        return (start, cursor) if cursor > start and depth == 0 else None
+        return cursor, columns
 
-    def closing_html_tag_end(position: int) -> int | None:
-        closing_tag = re.match(
-            r"</[A-Za-z][A-Za-z0-9-]*[ \t]*>", source[position:]
+    def indentation_prefix(text: str, target_columns: int) -> int | None:
+        cursor = 0
+        columns = 0
+        while cursor < len(text) and columns < target_columns and text[cursor] in " \t":
+            if text[cursor] == " ":
+                columns += 1
+            else:
+                columns += 4 - columns % 4
+            cursor += 1
+        return cursor if columns >= target_columns else None
+
+    def thematic_break(content: str) -> bool:
+        compact = content.replace(" ", "").replace("\t", "")
+        return bool(
+            len(compact) >= 3
+            and compact[0] in "*-_"
+            and compact == compact[0] * len(compact)
         )
-        return position + closing_tag.end() if closing_tag else None
 
-    index = 0
-    bracket_stack: list[int] = []
-    inline_code_ticks: int | None = None
-    fence_marker: str | None = None
-    fence_length = 0
-    while index < len(source):
-        character = source[index]
+    def html_block_start(content: str, paragraph_open: bool) -> tuple[str, str] | None:
+        raw_tag = re.match(r"<(pre|script|style|textarea)(?=[ \t]|>|$)", content, re.I)
+        if raw_tag:
+            return "token", f"</{raw_tag.group(1).casefold()}>"
+        if content.startswith("<!--"):
+            return "token", "-->"
+        if content.startswith("<?"):
+            return "token", "?>"
+        if content.startswith("<![CDATA["):
+            return "token", "]]>"
+        if re.match(r"<![A-Za-z]", content):
+            return "token", ">"
+        block_tag = re.match(
+            r"</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t]|>|/>|$)", content
+        )
+        if block_tag and block_tag.group(1).casefold() in _MARKDOWN_HTML_BLOCK_TAGS:
+            return "blank", ""
+        if not paragraph_open and _markdown_raw_html_end(content, 0) is not None:
+            return "blank", ""
+        return None
 
-        if is_blank_line_end(index):
-            bracket_stack.clear()
+    region_positions: dict[int, list[int]] = defaultdict(list)
+    region_kinds: dict[int, str] = {}
+    next_region = 0
+    open_paragraph: int | None = None
+    open_depth: int | None = None
+    fence_state: tuple[str, int, int] | None = None
+    html_state: tuple[str, str, int] | None = None
+    list_stack: list[dict[str, int | bool]] = []
+    html_positions = [False] * len(source)
 
-        if fence_marker is not None:
-            closing_length = is_fence_close(index, fence_marker, fence_length)
-            if closing_length:
-                fence_marker = None
-                fence_length = 0
-                index += closing_length
-            else:
-                index += 1
+    def new_region(kind: str) -> int:
+        nonlocal next_region
+        region = next_region
+        next_region += 1
+        region_kinds[region] = kind
+        return region
+
+    def close_paragraph() -> None:
+        nonlocal open_paragraph, open_depth
+        open_paragraph = None
+        open_depth = None
+
+    def add_line(region: int, start: int, line: _MarkdownLine) -> None:
+        region_positions[region].extend(range(start, line.body_end))
+        region_positions[region].extend(range(line.body_end, line.end))
+
+    def start_fence_or_html_block(
+        content: str,
+        content_source_start: int,
+        indent_columns: int,
+        line: _MarkdownLine,
+        paragraph_open: bool,
+    ) -> bool:
+        nonlocal fence_state, html_state
+
+        fence = re.match(r"(`{3,}|~{3,})(.*)$", content)
+        if indent_columns <= 3 and fence is not None:
+            marker_run = fence.group(1)
+            info = fence.group(2)
+            if marker_run[0] == "~" or "`" not in info:
+                close_paragraph()
+                info_start = content_source_start + len(marker_run)
+                mask_source(info_start, line.body_end)
+                fence_state = (marker_run[0], len(marker_run), line.quote_depth)
+                return True
+
+        block_html = html_block_start(content, paragraph_open)
+        if indent_columns <= 3 and block_html is not None:
+            close_paragraph()
+            for source_position in range(line.content_start, line.end):
+                html_positions[source_position] = True
+            kind, token = block_html
+            ended = kind == "token" and token in content.casefold()
+            if not ended:
+                html_state = (kind, token, line.quote_depth)
+            return True
+        return False
+
+    for line in lines:
+        full_raw = source[line.content_start : line.body_end]
+        blank = not full_raw.strip(" \t")
+        absolute_indent_length, absolute_indent_columns = indentation(full_raw)
+        absolute_content = full_raw[absolute_indent_length:]
+
+        if list_stack and int(list_stack[-1]["quote_depth"]) != line.quote_depth:
+            list_stack.clear()
+        relative_index = next(
+            (
+                index
+                for index in range(len(list_stack) - 1, -1, -1)
+                if indentation_prefix(
+                    full_raw,
+                    int(list_stack[index]["content_indent"]),
+                )
+                is not None
+            ),
+            None,
+        )
+        if relative_index is not None:
+            list_stack = list_stack[: relative_index + 1]
+        relative_list = list_stack[-1] if relative_index is not None else None
+        relative_prefix = (
+            indentation_prefix(full_raw, int(relative_list["content_indent"]))
+            if relative_list is not None
+            else None
+        )
+        absolute_marker = re.match(r"(?:[*+-]|\d{1,9}[.)])", absolute_content)
+        potential_sibling = bool(
+            absolute_marker is not None
+            and not thematic_break(absolute_content)
+            and (
+                absolute_marker.end() == len(absolute_content)
+                or absolute_content[absolute_marker.end()] in " \t"
+            )
+            and any(
+                int(context["marker_indent"]) == absolute_indent_columns
+                for context in list_stack
+            )
+        )
+        if (
+            list_stack
+            and bool(list_stack[-1]["had_blank"])
+            and relative_prefix is None
+            and not potential_sibling
+        ):
+            list_stack.clear()
+            relative_list = None
+        within_list_content = relative_prefix is not None
+        effective_start = (
+            line.content_start + relative_prefix
+            if relative_prefix is not None
+            else line.content_start
+        )
+        raw = source[effective_start : line.body_end]
+        indent_length, indent_columns = indentation(raw)
+        content = raw[indent_length:]
+        content_source_start = effective_start + indent_length
+        base_columns = (
+            int(relative_list["content_indent"])
+            if within_list_content and relative_list is not None
+            else 0
+        )
+        if within_list_content and relative_list is not None:
+            relative_list["had_blank"] = False
+
+        if fence_state is not None and fence_state[2] != line.quote_depth:
+            fence_state = None
+        if html_state is not None and html_state[2] != line.quote_depth:
+            html_state = None
+
+        if fence_state is not None:
+            close_paragraph()
+            marker, minimum, _depth = fence_state
+            closing = re.match(re.escape(marker) + r"{%d,}[ \t]*$" % minimum, content)
+            if indent_columns <= 3 and closing:
+                fence_state = None
             continue
 
-        if inline_code_ticks is not None:
-            if character == "`" and not is_escaped(index):
-                length = marker_run(index, "`")
-                if length == inline_code_ticks:
-                    inline_code_ticks = None
-                index += length
-            else:
-                index += 1
-            continue
-
-        if is_markdown_block_start(index):
-            bracket_stack.clear()
-
-        reference_destination = standalone_reference_destination(index)
-        if reference_destination is not None:
-            mask(*reference_destination)
-
-        if character in "`~" and not is_escaped(index) and is_fence_indent(index):
-            length = marker_run(index, character)
-            if length >= 3:
-                bracket_stack.clear()
-                fence_marker = character
-                fence_length = length
-                index += length
+        if html_state is not None:
+            close_paragraph()
+            kind, token, _depth = html_state
+            if kind == "blank" and blank:
+                html_state = None
                 continue
-
-        if character == "`" and not is_escaped(index):
-            inline_code_ticks = marker_run(index, "`")
-            index += inline_code_ticks
+            for source_position in range(line.content_start, line.end):
+                html_positions[source_position] = True
+            if kind == "token" and token in raw.casefold():
+                html_state = None
             continue
 
-        if character == "<" and not is_escaped(index):
-            closing_tag_end = closing_html_tag_end(index)
-            if closing_tag_end is not None:
-                mask(index, closing_tag_end)
-                index = closing_tag_end
+        if blank:
+            close_paragraph()
+            for list_context in list_stack:
+                list_context["had_blank"] = True
+            continue
+
+        if start_fence_or_html_block(
+            content,
+            content_source_start,
+            indent_columns,
+            line,
+            open_paragraph is not None,
+        ):
+            continue
+
+        if (
+            open_paragraph is not None
+            and open_depth == line.quote_depth
+            and indent_columns <= 3
+            and re.fullmatch(r"(?:=+|-+)[ \t]*", content)
+        ):
+            close_paragraph()
+            continue
+
+        atx = re.match(r"#{1,6}(?:[ \t]+|$)", content)
+        if indent_columns <= 3 and atx is not None:
+            close_paragraph()
+            region = new_region("inline")
+            add_line(region, content_source_start + atx.end(), line)
+            continue
+
+        if indent_columns <= 3 and thematic_break(content):
+            close_paragraph()
+            continue
+
+        unordered = re.match(r"[*+-]", content)
+        ordered = re.match(r"(\d{1,9})[.)]", content)
+        marker = unordered if unordered is not None else ordered
+        if indent_columns <= 3 and marker is not None:
+            ordered_value = int(ordered.group(1)) if ordered is not None else None
+            may_interrupt = unordered is not None or ordered_value == 1
+            marker_end = marker.end()
+            padding_end = marker_end
+            marker_indent = base_columns + indent_columns
+            padding_column = marker_indent + marker_end
+            while padding_end < len(content) and content[padding_end] in " \t":
+                if content[padding_end] == " ":
+                    padding_column += 1
+                else:
+                    padding_column += 4 - padding_column % 4
+                padding_end += 1
+            padding = padding_column - marker_indent - marker_end
+            empty_item = padding_end == len(content)
+            sibling_index = next(
+                (
+                    index
+                    for index in range(len(list_stack) - 1, -1, -1)
+                    if int(list_stack[index]["marker_indent"]) == marker_indent
+                    and int(list_stack[index]["quote_depth"]) == line.quote_depth
+                ),
+                None,
+            )
+            nested_item = within_list_content and sibling_index is None
+            marker_allowed = bool(
+                sibling_index is not None
+                or open_paragraph is None
+                or (may_interrupt and not empty_item)
+            )
+            if marker_allowed and (empty_item or padding > 0):
+                close_paragraph()
+                if sibling_index is not None:
+                    list_stack = list_stack[:sibling_index]
+                elif not nested_item:
+                    list_stack.clear()
+                effective_padding = 1 if empty_item or padding > 4 else padding
+                list_stack.append(
+                    {
+                        "quote_depth": line.quote_depth,
+                        "marker_indent": marker_indent,
+                        "content_indent": marker_indent + marker_end + effective_padding,
+                        "had_blank": False,
+                    }
+                )
+                if not empty_item and padding > 4:
+                    continue
+                item_content = content[padding_end:]
+                item_content_source_start = content_source_start + padding_end
+                if not empty_item and start_fence_or_html_block(
+                    item_content,
+                    item_content_source_start,
+                    0,
+                    line,
+                    False,
+                ):
+                    continue
+                open_paragraph = new_region("paragraph")
+                open_depth = line.quote_depth
+                if not empty_item:
+                    add_line(
+                        open_paragraph,
+                        content_source_start + padding_end,
+                        line,
+                    )
                 continue
 
         if (
-            not is_escaped(index)
-            and (source.startswith("<http://", index) or source.startswith("<https://", index))
+            list_stack
+            and bool(list_stack[-1]["had_blank"])
+            and not within_list_content
         ):
-            close = source.find(">", index + 1)
-            destination = source[index + 1 : close] if close >= 0 else ""
-            if close >= 0 and destination and not any(
-                character.isspace() or character in "<>" for character in destination
-            ):
-                mask(index, close + 1)
-                index = close + 1
+            list_stack.clear()
+
+        if indent_columns >= 4 and open_paragraph is None:
+            continue
+
+        lazy_quote_continuation = bool(
+            open_paragraph is not None
+            and open_depth
+            and line.quote_depth < open_depth
+        )
+        if open_paragraph is None or (
+            open_depth != line.quote_depth and not lazy_quote_continuation
+        ):
+            close_paragraph()
+            open_paragraph = new_region("paragraph")
+            open_depth = line.quote_depth
+        add_line(open_paragraph, effective_start, line)
+
+    inline_excluded = [False] * len(source)
+    defined_labels: set[str] = set()
+    for region, positions in region_positions.items():
+        if region_kinds[region] != "paragraph":
+            continue
+        virtual = "".join(source[source_position] for source_position in positions)
+        cursor = 0
+        while cursor < len(virtual):
+            definition = _parse_markdown_reference_definition(virtual, cursor)
+            if definition is None:
+                break
+            for virtual_position in range(cursor, min(definition.end, len(positions))):
+                inline_excluded[positions[virtual_position]] = True
+            mask_virtual(positions, definition.mask_spans)
+            defined_labels.add(definition.normalized_label)
+            cursor = definition.end
+
+    html_cursor = 0
+    while html_cursor < len(source):
+        if source[html_cursor] == "<" and html_positions[html_cursor]:
+            raw_html = _parse_markdown_raw_html(source, html_cursor)
+            if raw_html is not None:
+                for start, end in raw_html.mask_spans:
+                    mask_source(start, end)
+                html_cursor = raw_html.end
+                continue
+        html_cursor += 1
+
+    def scan_inline_region(positions: list[int]) -> None:
+        filtered = [
+            source_position
+            for source_position in positions
+            if not inline_excluded[source_position]
+        ]
+        if not filtered:
+            return
+        virtual = "".join(source[source_position] for source_position in filtered)
+        bracket_stack: list[dict[str, object]] = []
+
+        def deactivate_link_ancestors() -> None:
+            for bracket in bracket_stack:
+                if not bracket["image"]:
+                    bracket["active"] = False
+
+        cursor = 0
+        while cursor < len(virtual):
+            character = virtual[cursor]
+
+            if character == "`" and not _markdown_is_escaped(virtual, cursor):
+                run_end = cursor
+                while run_end < len(virtual) and virtual[run_end] == "`":
+                    run_end += 1
+                ticks = run_end - cursor
+                search = run_end
+                close = None
+                while search < len(virtual):
+                    candidate = virtual.find("`" * ticks, search)
+                    if candidate < 0:
+                        break
+                    before = candidate - 1 < 0 or virtual[candidate - 1] != "`"
+                    after = candidate + ticks >= len(virtual) or virtual[candidate + ticks] != "`"
+                    if before and after:
+                        close = candidate + ticks
+                        break
+                    search = candidate + 1
+                cursor = close if close is not None else run_end
                 continue
 
-        if character == "[" and not is_escaped(index):
-            bracket_stack.append(index)
-        elif character == "]" and not is_escaped(index):
-            opener = bracket_stack.pop() if bracket_stack else None
-            if opener is not None and index + 1 < len(source) and source[index + 1] == "(":
-                end = destination_end(index + 1)
-                if end is not None:
-                    mask(index + 1, end)
-                    index = end
+            if character == "<" and not _markdown_is_escaped(virtual, cursor):
+                autolink_end = _markdown_autolink_end(virtual, cursor)
+                if autolink_end is not None:
+                    mask_virtual(filtered, ((cursor, autolink_end),))
+                    deactivate_link_ancestors()
+                    cursor = autolink_end
                     continue
-        index += 1
+                raw_html = _parse_markdown_raw_html(virtual, cursor)
+                if raw_html is not None:
+                    mask_virtual(filtered, raw_html.mask_spans)
+                    cursor = raw_html.end
+                    continue
+
+            if character == "[" and not _markdown_is_escaped(virtual, cursor):
+                image = (
+                    cursor > 0
+                    and virtual[cursor - 1] == "!"
+                    and not _markdown_is_escaped(virtual, cursor - 1)
+                )
+                bracket_stack.append({"position": cursor, "image": image, "active": True})
+                cursor += 1
+                continue
+
+            if character == "]" and not _markdown_is_escaped(virtual, cursor):
+                opener = bracket_stack.pop() if bracket_stack else None
+                if opener is None or not opener["active"]:
+                    cursor += 1
+                    continue
+                opener_position = int(opener["position"])
+                is_image = bool(opener["image"])
+                following = cursor + 1
+
+                if following < len(virtual) and virtual[following] == "(":
+                    payload = _parse_markdown_inline_payload(virtual, following)
+                    if payload is not None:
+                        mask_virtual(filtered, payload.mask_spans)
+                        if not is_image:
+                            deactivate_link_ancestors()
+                        cursor = payload.end
+                        continue
+
+                if following < len(virtual) and virtual[following] == "[":
+                    second = _parse_markdown_label(virtual, following, allow_empty=True)
+                    if second is not None:
+                        first_value = virtual[opener_position + 1 : cursor]
+                        if second.value == "":
+                            reference = _normalize_markdown_label(first_value)
+                        else:
+                            reference = _normalize_markdown_label(second.value)
+                        if second.value == "" or reference:
+                            if reference and reference in defined_labels:
+                                mask_virtual(filtered, ((following, second.end),))
+                                if not is_image:
+                                    deactivate_link_ancestors()
+                                cursor = second.end
+                            else:
+                                cursor = following
+                            continue
+
+                shortcut = _normalize_markdown_label(
+                    virtual[opener_position + 1 : cursor]
+                )
+                if shortcut and shortcut in defined_labels and not is_image:
+                    deactivate_link_ancestors()
+                cursor += 1
+                continue
+
+            cursor += 1
+
+    for region in sorted(region_positions):
+        scan_inline_region(region_positions[region])
+
     return "".join(masked)
 
 
