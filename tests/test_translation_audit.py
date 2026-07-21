@@ -1,17 +1,24 @@
+import csv
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
+import zipfile
 
 from tools.translation_audit import (
     _FileState,
     _analyze_file,
     _escape_lua_content,
+    _is_valid_lua_short_content,
     _report_duplicate_divergence,
     _scan_lua_regions,
+    apply_reference_fixes,
     audit_repository,
     extract_lua_short_strings,
     find_semantic_tables,
     format_signature,
+    load_csv_candidates,
+    load_xlsx_candidates,
     normalize_xlsx_term,
     select_expected_translation,
 )
@@ -182,3 +189,194 @@ class TranslationAuditTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(replacements, [])
         self.assertTrue(any("invalid Lua short-string" in warning for warning in warnings))
+
+    def test_invalid_lua_escape_reference_is_not_scheduled(self):
+        path = Path("Gen 3") / "RS_RNG_mGBA.lua"
+        baseline = 'local speciesNamesList = {"English"}'
+        current = 'local speciesNamesList = {"旧名称"}'
+        state = _FileState(
+            relative_path=path,
+            absolute_path=Path("unused"),
+            current_source=current,
+            current_has_bom=False,
+            base_source=baseline,
+            current_tables=find_semantic_tables(current, path),
+            base_tables=find_semantic_tables(baseline, path),
+        )
+        errors, warnings, replacements = [], set(), []
+        unsafe = _analyze_file(
+            state,
+            {"species": {"English": {r"Bad\q"}}},
+            {},
+            errors,
+            warnings,
+            replacements,
+        )
+        self.assertFalse(unsafe)
+        self.assertEqual(errors, [])
+        self.assertEqual(replacements, [])
+        self.assertTrue(any("invalid Lua short-string" in warning for warning in warnings))
+
+    def test_lua_escape_candidate_grammar(self):
+        valid = (
+            r"plain",
+            r"\a\b\f\n\r\t\v\\\"\'",
+            r"\0\7\42\255\1234",
+            r"\x00\xAf",
+            r"\u{0}\u{10FFFF}",
+            "\\\n",
+            "\\\r\n",
+            "\\z \t\r\nrest",
+        )
+        invalid = (
+            r"\q",
+            "trailing\\",
+            r"\x",
+            r"\x0",
+            r"\xGG",
+            r"\u",
+            r"\u{}",
+            r"\u{XYZ}",
+            r"\u{110000}",
+            r"\256",
+            r"\400",
+        )
+        for value in valid:
+            with self.subTest(value=value, expected="valid"):
+                self.assertTrue(_is_valid_lua_short_content(value, '"'))
+        for value in invalid:
+            with self.subTest(value=value, expected="invalid"):
+                self.assertFalse(_is_valid_lua_short_content(value, '"'))
+
+    def test_public_audit_and_fix_cycle_preserves_reference_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lua_path = root / "Gen 3" / "mGBA" / "RS_RNG_mGBA.lua"
+            lua_path.parent.mkdir(parents=True)
+            baseline = (
+                'local speciesNamesList = {"Porygon2", "Blue"}\n'
+                'local moveNamesList = {"Cut"}\n'
+            )
+            current = (
+                'local speciesNamesList = {"多边兽Ⅱ", "蓝"}\n'
+                'local moveNamesList = {"居合斩"}\n'
+            )
+            lua_path.write_text(baseline, encoding="utf-8", newline="")
+            subprocess.run(
+                ["git", "init", "-q", str(root)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            subprocess.run(
+                ["git", "-C", str(root), "add", "--", lua_path.relative_to(root).as_posix()],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(root),
+                    "-c",
+                    "user.name=Codex",
+                    "-c",
+                    "user.email=codex@local",
+                    "commit",
+                    "-q",
+                    "-m",
+                    "baseline",
+                ],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            base_ref = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            ).stdout.strip()
+            lua_path.write_text(current, encoding="utf-8", newline="")
+
+            csv_path = root / "reference.csv"
+            with csv_path.open("w", encoding="utf-8-sig", newline="") as stream:
+                writer = csv.DictWriter(
+                    stream,
+                    fieldnames=["分组", "英文原文", "统一中文建议"],
+                )
+                writer.writeheader()
+                writer.writerow(
+                    {"分组": "species", "英文原文": "Porygon2", "统一中文建议": "多边兽2型"}
+                )
+                writer.writerow(
+                    {"分组": "forms", "英文原文": "Blue", "统一中文建议": "蓝条纹"}
+                )
+
+            xlsx_path = root / "reference.xlsx"
+            workbook = (
+                '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+                'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+                '<sheets><sheet name="Terms" sheetId="1" r:id="rId1"/></sheets></workbook>'
+            )
+            relationships = (
+                '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                '<Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>'
+            )
+            worksheet = (
+                '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData>'
+                '<row r="1"><c r="A1" t="inlineStr"><is><t>宝可梦</t></is></c></row>'
+                '<row r="2"><c r="A2" t="inlineStr"><is><t>多边兽Ⅱ</t></is></c>'
+                '<c r="B2" t="inlineStr"><is><t>Porygon2</t></is></c></row>'
+                '<row r="3"><c r="A3" t="inlineStr"><is><t>招式</t></is></c></row>'
+                '<row r="4"><c r="A4" t="inlineStr"><is><t>居合劈</t></is></c>'
+                '<c r="B4" t="inlineStr"><is><t>Cut</t></is></c></row>'
+                '</sheetData></worksheet>'
+            )
+            with zipfile.ZipFile(xlsx_path, "w") as archive:
+                archive.writestr("xl/workbook.xml", workbook)
+                archive.writestr("xl/_rels/workbook.xml.rels", relationships)
+                archive.writestr("xl/worksheets/sheet1.xml", worksheet)
+
+            csv_before = csv_path.read_bytes()
+            xlsx_before = xlsx_path.read_bytes()
+            csv_mtime_before = csv_path.stat().st_mtime_ns
+            xlsx_mtime_before = xlsx_path.stat().st_mtime_ns
+            csv_candidates = load_csv_candidates(csv_path)
+            xlsx_candidates = load_xlsx_candidates(xlsx_path)
+            self.assertEqual(csv_candidates["species"]["Porygon2"], {"多边兽2型"})
+            self.assertEqual(xlsx_candidates["moves"]["Cut"], {"居合劈"})
+
+            before = audit_repository(root, csv_path, xlsx_path, base_ref)
+            self.assertEqual(before.errors, [])
+            self.assertEqual(
+                [(fix.english, fix.after, fix.source) for fix in before.fixes],
+                [("Porygon2", "多边兽2型", "csv"), ("Cut", "居合劈", "xlsx")],
+            )
+            applied = apply_reference_fixes(root, csv_path, xlsx_path, base_ref)
+            self.assertEqual(applied, before.fixes)
+            after = audit_repository(root, csv_path, xlsx_path, base_ref)
+            self.assertTrue(after.ok)
+            self.assertEqual(after.warnings, [])
+            self.assertEqual(
+                lua_path.read_text(encoding="utf-8"),
+                (
+                    'local speciesNamesList = {"多边兽2型", "蓝"}\n'
+                    'local moveNamesList = {"居合劈"}\n'
+                ),
+            )
+            self.assertEqual(csv_path.read_bytes(), csv_before)
+            self.assertEqual(xlsx_path.read_bytes(), xlsx_before)
+            self.assertEqual(csv_path.stat().st_mtime_ns, csv_mtime_before)
+            self.assertEqual(xlsx_path.stat().st_mtime_ns, xlsx_mtime_before)
+            status = subprocess.run(
+                ["git", "-C", str(root), "status", "--short", "--", "reference.csv", "reference.xlsx"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            ).stdout.splitlines()
+            self.assertEqual(set(status), {"?? reference.csv", "?? reference.xlsx"})

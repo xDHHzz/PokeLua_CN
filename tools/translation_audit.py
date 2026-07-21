@@ -153,6 +153,9 @@ _CODE_TOKEN_RE = re.compile(
 _ASCII_LETTER_RE = re.compile(r"[A-Za-z]")
 _CJK_RE = re.compile(r"[\u3400-\u9fff]")
 _JAPANESE_KANA_RE = re.compile(r"[\u3040-\u30ff]")
+_HEX_DIGITS = frozenset("0123456789abcdefABCDEF")
+_LUA_SIMPLE_ESCAPES = frozenset("abfnrtv\\\"'")
+_LUA_WHITESPACE = frozenset(" \t\v\f\r\n")
 
 
 def _long_bracket_end(source: str, start: int) -> tuple[int, bool] | None:
@@ -920,7 +923,72 @@ def _escape_lua_content(value: str, quote: str) -> str:
     return "".join(result)
 
 
+def _has_valid_lua_escapes(value: str) -> bool:
+    """Validate escapes for a raw candidate without decoding its content."""
+
+    index = 0
+    while index < len(value):
+        if value[index] != "\\":
+            index += 1
+            continue
+        if index + 1 >= len(value):
+            return False
+
+        escaped = value[index + 1]
+        if escaped in _LUA_SIMPLE_ESCAPES:
+            index += 2
+            continue
+        if escaped in "\r\n":
+            if index + 2 < len(value) and {escaped, value[index + 2]} == {"\r", "\n"}:
+                index += 3
+            else:
+                index += 2
+            continue
+        if escaped == "z":
+            index += 2
+            while index < len(value) and value[index] in _LUA_WHITESPACE:
+                index += 1
+            continue
+        if escaped.isascii() and escaped.isdigit():
+            end = index + 1
+            while (
+                end < len(value)
+                and end < index + 4
+                and value[end].isascii()
+                and value[end].isdigit()
+            ):
+                end += 1
+            if int(value[index + 1 : end]) > 255:
+                return False
+            index = end
+            continue
+        if escaped == "x":
+            digits = value[index + 2 : index + 4]
+            if len(digits) != 2 or any(character not in _HEX_DIGITS for character in digits):
+                return False
+            index += 4
+            continue
+        if escaped == "u":
+            if index + 2 >= len(value) or value[index + 2] != "{":
+                return False
+            close = value.find("}", index + 3)
+            if close < 0:
+                return False
+            digits = value[index + 3 : close]
+            if not digits or any(character not in _HEX_DIGITS for character in digits):
+                return False
+            codepoint = int(digits, 16)
+            if codepoint > 0x10FFFF or 0xD800 <= codepoint <= 0xDFFF:
+                return False
+            index = close + 1
+            continue
+        return False
+    return True
+
+
 def _is_valid_lua_short_content(value: str, quote: str) -> bool:
+    if not _has_valid_lua_escapes(value):
+        return False
     wrapped = quote + value + quote
     regions = _scan_lua_regions(wrapped)
     if len(regions) != 1:
