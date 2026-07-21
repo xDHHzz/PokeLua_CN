@@ -392,6 +392,73 @@ README_VISIBLE_ENGLISH_ALLOWLIST = {
 
 README_VISIBLE_CONTEXT_DIGEST = "36c805bd4bea99d8aef43f39e85519c8f422f83898a265ce4643870d5c1513a4"
 _MARKDOWN_VISIBLE_ASCII_TOKEN_RE = re.compile(r"[A-Za-z0-9]+(?:[._/+:-][A-Za-z0-9]+)*\+?")
+_MARKDOWN_HTML_BLOCK_TAGS = frozenset(
+    {
+        "address",
+        "article",
+        "aside",
+        "base",
+        "basefont",
+        "blockquote",
+        "body",
+        "caption",
+        "center",
+        "col",
+        "colgroup",
+        "dd",
+        "details",
+        "dialog",
+        "dir",
+        "div",
+        "dl",
+        "dt",
+        "fieldset",
+        "figcaption",
+        "figure",
+        "footer",
+        "form",
+        "frame",
+        "frameset",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "head",
+        "header",
+        "hr",
+        "html",
+        "iframe",
+        "legend",
+        "li",
+        "link",
+        "main",
+        "menu",
+        "menuitem",
+        "nav",
+        "noframes",
+        "ol",
+        "optgroup",
+        "option",
+        "p",
+        "param",
+        "search",
+        "section",
+        "summary",
+        "table",
+        "tbody",
+        "td",
+        "tfoot",
+        "th",
+        "thead",
+        "title",
+        "tr",
+        "track",
+        "ul",
+    }
+)
+_MARKDOWN_RAW_HTML_TAGS = frozenset({"pre", "script", "style", "textarea"})
 
 
 def _long_bracket_end(source: str, start: int) -> tuple[int, bool] | None:
@@ -1184,6 +1251,62 @@ def _mask_markdown_destinations(source: str) -> str:
         line_start = source.rfind("\n", 0, position) + 1
         return not source[line_start:position].strip(" \t\r")
 
+    def is_markdown_block_start(position: int) -> bool:
+        if position > 0 and source[position - 1] != "\n":
+            return False
+        line_end = source.find("\n", position)
+        if line_end < 0:
+            line_end = len(source)
+        line = source[position:line_end].rstrip("\r")
+
+        cursor = 0
+        indentation = 0
+        while cursor < len(line) and line[cursor] in " \t":
+            if line[cursor] == " ":
+                indentation += 1
+            else:
+                indentation += 4 - indentation % 4
+            cursor += 1
+            if indentation >= 4:
+                return True
+
+        content = line[cursor:]
+        if not content:
+            return False
+        if re.match(r"#{1,6}(?:[ \t]+|$)", content):
+            return True
+        if re.fullmatch(r"[=-]+[ \t]*", content):
+            return True
+
+        compact = content.replace(" ", "").replace("\t", "")
+        if (
+            len(compact) >= 3
+            and compact[0] in "*-_"
+            and compact == compact[0] * len(compact)
+        ):
+            return True
+        if content.startswith(">"):
+            return True
+        if re.match(r"[*+-](?:[ \t]+|$)", content):
+            return True
+        if re.match(r"\d{1,9}[.)](?:[ \t]+|$)", content):
+            return True
+        if re.match(r"\[(?:\\.|[^\[\]\\])+\]:[ \t]*(?:\S|$)", content):
+            return True
+
+        if content.startswith(("<!--", "<?", "<![CDATA[")):
+            return True
+        if re.match(r"<![A-Z]", content):
+            return True
+        html_tag = re.match(
+            r"</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t/>]|$)", content
+        )
+        return bool(
+            html_tag
+            and html_tag.group(1).casefold()
+            in (_MARKDOWN_RAW_HTML_TAGS | _MARKDOWN_HTML_BLOCK_TAGS)
+        )
+
     def is_fence_close(position: int, marker: str, minimum: int) -> int:
         if source[position] != marker or is_escaped(position) or not is_fence_indent(position):
             return 0
@@ -1241,6 +1364,9 @@ def _mask_markdown_destinations(source: str) -> str:
             else:
                 index += 1
             continue
+
+        if is_markdown_block_start(index):
+            bracket_stack.clear()
 
         if character in "`~" and not is_escaped(index) and is_fence_indent(index):
             length = marker_run(index, character)

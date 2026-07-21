@@ -443,6 +443,38 @@ class TranslationAuditTests(unittest.TestCase):
 
     def test_readme_visible_markdown_is_audited_but_link_destinations_are_excluded(self):
         approved = (ROOT / "README.md").read_text(encoding="utf-8")
+        block_boundary_cases = {
+            "atx_heading": ("# 标题", "UnapprovedAcrossHeading"),
+            "dash_rule": ("---", "UnapprovedAcrossRule"),
+            "blockquote": ("> 引用", "UnapprovedAcrossQuote"),
+            "unordered_list": ("- 列表", "UnapprovedAcrossList"),
+            "setext_underline": ("===", "UnapprovedAcrossSetext"),
+            "thematic_break": ("* * *", "UnapprovedAcrossThematicBreak"),
+            "ordered_list_period": ("1. 列表", "UnapprovedAcrossOrderedList"),
+            "ordered_list_paren": ("1) 列表", "UnapprovedAcrossParenList"),
+            "html_raw_tag": ("<script>", "UnapprovedAcrossRawHtml"),
+            "html_block_tag": ("<div>", "UnapprovedAcrossHtmlBlock"),
+            "html_comment": ("<!-- 注释 -->", "UnapprovedAcrossHtmlComment"),
+            "html_pi": ("<?处理?>", "UnapprovedAcrossHtmlPi"),
+            "html_declaration": ("<!DOCTYPE html>", "UnapprovedAcrossDeclaration"),
+            "html_cdata": ("<![CDATA[内容]]>", "UnapprovedAcrossCdata"),
+            "indented_spaces": ("    代码", "UnapprovedAcrossIndentedCode"),
+            "indented_tab": ("\t代码", "UnapprovedAcrossTabbedCode"),
+            "reference_definition": (
+                "[引用]: /路径",
+                "UnapprovedAcrossReferenceDefinition",
+            ),
+        }
+        block_local_link_cases = {
+            "heading_local_link": "# [标题](https://example.invalid/UnapprovedHeadingDestination)",
+            "quote_local_link": "> [引用](https://example.invalid/UnapprovedQuoteDestination)",
+            "unordered_local_link": (
+                "- [列表](https://example.invalid/UnapprovedListDestination)"
+            ),
+            "ordered_local_link": (
+                "1. [列表](https://example.invalid/UnapprovedOrderedDestination)"
+            ),
+        }
         variants = {
             "approved": approved,
             "url_destination": approved.replace(
@@ -480,12 +512,27 @@ class TranslationAuditTests(unittest.TestCase):
                 + "\n[链接\n说明](https://example.invalid/UnapprovedSoftLineDestination)\n"
             ),
         }
+        variants.update(
+            {
+                f"across_{name}": approved + f"\n[\n{block_line}\n]({leak})\n"
+                for name, (block_line, leak) in block_boundary_cases.items()
+            }
+        )
+        variants.update(
+            {
+                name: approved + f"\n{block_line}\n"
+                for name, block_line in block_local_link_cases.items()
+            }
+        )
         results = self.audit_readme_variants(variants)
         self.assertEqual(results["approved"].errors, [])
         self.assertEqual(results["url_destination"].errors, [])
         self.assertEqual(results["balanced_destination"].errors, [])
         self.assertEqual(results["autolink_destination"].errors, [])
         self.assertEqual(results["soft_line_link"].errors, [])
+        for name in block_local_link_cases:
+            with self.subTest(name=name):
+                self.assertEqual(results[name].errors, [])
         for name in ("heading", "body", "link_label", "image_alt", "inline_code"):
             with self.subTest(name=name):
                 self.assertFalse(results[name].ok)
@@ -493,6 +540,16 @@ class TranslationAuditTests(unittest.TestCase):
                     any(
                         "README.md" in error and "unapproved visible English" in error
                         for error in results[name].errors
+                    )
+                )
+        for name, (_block_line, leak) in block_boundary_cases.items():
+            with self.subTest(name=name):
+                result = results[f"across_{name}"]
+                self.assertFalse(result.ok)
+                self.assertTrue(
+                    any(
+                        f"unapproved visible English {leak!r}" in error
+                        for error in result.errors
                     )
                 )
         self.assertFalse(results["missing"].ok)
