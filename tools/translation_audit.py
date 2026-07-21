@@ -42,6 +42,11 @@ SEMANTIC_TABLES = {
 
 LOCATION_GROUPS = {"rs", "e", "frlg", "dppt", "hgss", "bw", "bw2", "bdsp"}
 
+# The XLSX row for Gram 1 contains both 配送物品 and 配送物品１.  Selecting its
+# first Chinese-looking cell would erase the ordinal and break the adjacent
+# Gram 1/2/3 sequence, so only this context-qualified XLSX fallback is rejected.
+XLSX_FALLBACK_EXCLUSIONS = frozenset({("items", "Gram 1")})
+
 XLSX_SECTION_NAMES = {
     "宝可梦": "species",
     "宝可梦列表": "species",
@@ -545,6 +550,8 @@ def select_expected_translation(
     xlsx_group = _xlsx_group_for(normalized_group)
     if xlsx_group is None:
         return None
+    if (xlsx_group, english) in XLSX_FALLBACK_EXCLUSIONS:
+        return None
     xlsx_values = _candidate_values(xlsx_candidates, xlsx_group, english)
     return next(iter(xlsx_values)) if len(xlsx_values) == 1 else None
 
@@ -565,6 +572,8 @@ def _resolve_expected(
         return next(iter(csv_values)), "csv", None
     xlsx_group = _xlsx_group_for(group)
     if xlsx_group is None:
+        return None, None, None
+    if (xlsx_group, english) in XLSX_FALLBACK_EXCLUSIONS:
         return None, None, None
     xlsx_values = _candidate_values(xlsx_candidates, xlsx_group, english)
     if len(xlsx_values) > 1:

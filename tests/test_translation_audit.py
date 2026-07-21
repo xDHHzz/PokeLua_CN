@@ -56,6 +56,51 @@ class TranslationAuditTests(unittest.TestCase):
         )
         self.assertEqual(expected, "严酷山（入口）")
 
+    def test_xlsx_fallback_rejects_gram_1_without_disabling_safe_locations(self):
+        path = Path("Gen 5") / "BizHawk" / "BW_RNG_BizHawk.lua"
+        ordinal_item = "\u914d\u9001\u7269\u54c1\uff11"
+        unqualified_item = "\u914d\u9001\u7269\u54c1"
+        old_location = "\u65e7\u5730\u70b9"
+        dreamyard = "\u68a6\u7684\u9057\u5740"
+        baseline = (
+            'local itemNamesList = {"Gram 1"}\n'
+            'local locationNamesList = {"Dreamyard"}\n'
+        )
+        current = (
+            f'local itemNamesList = {{"{ordinal_item}"}}\n'
+            f'local locationNamesList = {{"{old_location}"}}\n'
+        )
+        state = _FileState(
+            relative_path=path,
+            absolute_path=Path("unused"),
+            current_source=current,
+            current_has_bom=False,
+            base_source=baseline,
+            current_tables=find_semantic_tables(current, path),
+            base_tables=find_semantic_tables(baseline, path),
+        )
+        errors, warnings, replacements = [], set(), []
+
+        unsafe = _analyze_file(
+            state,
+            {},
+            {
+                "items": {"Gram 1": {unqualified_item}},
+                "locations": {"Dreamyard": {dreamyard}},
+            },
+            errors,
+            warnings,
+            replacements,
+        )
+
+        self.assertFalse(unsafe)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, set())
+        self.assertEqual(
+            [(replacement.fix.english, replacement.fix.after) for replacement in replacements],
+            [("Dreamyard", dreamyard)],
+        )
+
     def test_homonym_without_matching_group_is_not_replaced(self):
         expected = select_expected_translation(
             english="Blue",
