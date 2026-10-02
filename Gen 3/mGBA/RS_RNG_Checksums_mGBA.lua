@@ -1,3 +1,12 @@
+-- Optional display language: "en" or "zh-Hans". Reload after changing.
+-- 可选显示语言：英文 "en"／简体中文 "zh-Hans"。修改后重新加载脚本。
+local POKELUA_LANGUAGE = "en"
+local function _pokeluaText(english, chinese)
+ if POKELUA_LANGUAGE == "zh-Hans" then return chinese end
+ return english
+end
+-- END POKELUA LOCALIZATION
+
 local targetSeed = 0xD517  -- Write here the target seed
 local targetHour = 0  -- Write here the target hours
 local targetMinute = 9  -- Write here the target minutes
@@ -27,17 +36,17 @@ local charMap = {
 local GameInfo, Jirachi, TENANNIV, TrainerInfo, Option, SaveInfo, Checksums
 
 function initializeBuffers()
- GameInfo = console:createBuffer("Game Info")
+ GameInfo = console:createBuffer(_pokeluaText("Game Info", "游戏信息"))
  GameInfo:setSize(100, 100)
- Jirachi = console:createBuffer("Jirachi")
+ Jirachi = console:createBuffer(_pokeluaText("Jirachi", "基拉祈"))
  Jirachi:setSize(100, 100)
  TENANNIV = console:createBuffer("10ANNIV / Aura Mew")
  TENANNIV:setSize(100, 100)
- TrainerInfo = console:createBuffer("Trainer Info")
+ TrainerInfo = console:createBuffer(_pokeluaText("Trainer Info", "训练家信息"))
  TrainerInfo:setSize(100, 100)
- Option = console:createBuffer("Option")
+ Option = console:createBuffer(_pokeluaText("Option", "选项"))
  Option:setSize(100, 100)
- SaveInfo = console:createBuffer("Save Info")
+ SaveInfo = console:createBuffer(_pokeluaText("Save Info", "存档信息"))
  SaveInfo:setSize(100, 100)
  --Checksums = console:createBuffer("Checksums")
  --Checksums:setSize(100, 100)
@@ -84,17 +93,17 @@ function printGameInfo()
  GameInfo:clear()
 
  if gameVersion == "" then  -- Print game info
-  GameInfo:print("Version: Unknown game")
+  GameInfo:print(_pokeluaText("Version: Unknown game", "版本：未知游戏"))
  elseif gameVersion ~= "Ruby" and gameVersion ~= "Sapphire" then
-  GameInfo:print(string.format("Version: %s - Wrong game version! Use Ruby/Sapphire instead\n", gameVersion))
+  GameInfo:print(string.format(_pokeluaText("Version: %s - Wrong game version! Use Ruby/Sapphire instead\n", "版本：%s - 游戏版本错误！请改用红宝石／蓝宝石\n"), gameVersion))
  elseif gameRegion == "JPN" then
-  GameInfo:print(string.format("Region: %s - Wrong game region! Use USA/EUR instead\n", gameRegion))
+  GameInfo:print(string.format(_pokeluaText("Region: %s - Wrong game region! Use USA/EUR instead\n", "地区：%s - 游戏地区错误！ 请改用美版/欧版\n"), gameRegion))
  elseif gameRegion == "" then
-  GameInfo:print("Version: "..gameVersion.."\n".."Region: Unknown region\n")
+  GameInfo:print(_pokeluaText("Version: ", "版本：")..gameVersion.."\n".._pokeluaText("Region: Unknown region\n", "地区：未知地区\n"))
  else
   wrongGameVersion = false
   wrongGameRegion = false
-  GameInfo:print("Version: "..gameVersion.."\n"..string.format("Region: %s\n", gameRegion))
+  GameInfo:print(_pokeluaText("Version: ", "版本：")..gameVersion.."\n"..string.format(_pokeluaText("Region: %s\n", "地区：%s\n"), gameRegion))
  end
 end
 
@@ -117,7 +126,7 @@ function showCurrentTime(buffer)
  local minute = emu:read8(saveBlock2Addr + 0x10)
  local second = emu:read8(saveBlock2Addr + 0x11)
  local sixtiethSecond = emu:read8(saveBlock2Addr + 0x12)
- buffer:print(string.format("Current Time: %02d:%02d:%02d:%02d\n", hour, minute, second, sixtiethSecond))
+ buffer:print(string.format(_pokeluaText("Current Time: %02d:%02d:%02d:%02d\n", "当前时间：%02d：%02d：%02d：%02d\n"), hour, minute, second, sixtiethSecond))
 end
 
 function getChecksumSeed()
@@ -132,11 +141,11 @@ end
 function showTargetInfo(buffer, textSpeedOptionIndex, checksum)
  local targetBaseHour, targetBaseMinute, targetBaseSecond, targetBaseSixtiethSecond = calculateBaseTargetTime(textSpeedOptionIndex)
  buffer:clear()
- buffer:print(string.format("Target Checksum Seed: %04X\n", targetSeed))
- buffer:print(string.format("Target Final Time: %02d:%02d:%02d:%02d\n", targetHour, targetMinute, targetSecond, targetSixtiethSecond))
- buffer:print(string.format("Target Base Save Time: %02d:%02d:%02d:%02d\n\n", targetBaseHour, targetBaseMinute, targetBaseSecond, targetBaseSixtiethSecond))
+ buffer:print(string.format(_pokeluaText("Target Checksum Seed: %04X\n", "目标校验和种子：%04X\n"), targetSeed))
+ buffer:print(string.format(_pokeluaText("Target Final Time: %02d:%02d:%02d:%02d\n", "目标最终时间：%02d：%02d：%02d：%02d\n"), targetHour, targetMinute, targetSecond, targetSixtiethSecond))
+ buffer:print(string.format(_pokeluaText("Target Base Save Time: %02d:%02d:%02d:%02d\n\n", "目标基础存档时间：%02d：%02d：%02d：%02d\n\n"), targetBaseHour, targetBaseMinute, targetBaseSecond, targetBaseSixtiethSecond))
  showCurrentTime(buffer)
- buffer:print(string.format("Segment 0 Checksum Seed: %04X\n", checksum))
+ buffer:print(string.format(_pokeluaText("Segment 0 Checksum Seed: %04X\n", "区段 0 校验和种子：%04X\n"), checksum))
 end
 
 function getChecksumsList()
@@ -189,28 +198,28 @@ end
 
 function showRNGInfo(buffer)
  local currentSeed = emu:read32(currentSeedAddr)
- buffer:print(string.format("Visual Frame: %d\n", emu:currentFrame() - 4))
- buffer:print(string.format("Current Seed: %08X", currentSeed))
+ buffer:print(string.format(_pokeluaText("Visual Frame: %d\n", "画面帧：%d\n"), emu:currentFrame() - 4))
+ buffer:print(string.format(_pokeluaText("Current Seed: %08X", "当前种子：%08X"), currentSeed))
 end
 
 function showTrainerInfo(buffer)
- local playerGenderSymbols = {"M", "F"}
+ local playerGenderSymbols = {_pokeluaText("M", "男"), _pokeluaText("F", "女")}
  local playerGenderIndex = emu:read8(saveBlock2Addr + 0x8)
  local trainerTID, trainerSID = getTrainerIDs()
  local playerName = getPlayerNameString(emu:readRange(saveBlock2Addr, 8))
  buffer:clear()
- buffer:print(string.format("Gender: %s\n", playerGenderSymbols[playerGenderIndex + 1]))
- buffer:print(string.format("TID: %d\nSID: %d\n", trainerTID, trainerSID))
- buffer:print(string.format("Name: %s\n\n", playerName))
+ buffer:print(string.format(_pokeluaText("Gender: %s\n", "性别：%s\n"), playerGenderSymbols[playerGenderIndex + 1]))
+ buffer:print(string.format(_pokeluaText("TID: %d\nSID: %d\n", "TID：%d\nSID：%d\n"), trainerTID, trainerSID))
+ buffer:print(string.format(_pokeluaText("Name: %s\n\n", "名字：%s\n\n"), playerName))
  showRNGInfo(buffer)
 end
 
 function showCurrentOptions(buffer, textSpeedOptionIndex)
- local speedTextOptions = {"Slow", "Mid", "Fast"}
- local battleSceneOptions = {"On", "Off"}
- local battleStyleOptions = {"Shift", "Set"}
- local soundOptions = {"Mono", "Stereo"}
- local buttonModeOptions = {"Normal", "LR", "L=A"}
+ local speedTextOptions = {_pokeluaText("Slow", "慢"), _pokeluaText("Mid", "中"), _pokeluaText("Fast", "快")}
+ local battleSceneOptions = {_pokeluaText("On", "开"), _pokeluaText("Off", "关")}
+ local battleStyleOptions = {_pokeluaText("Shift", "替换"), _pokeluaText("Set", "连战")}
+ local soundOptions = {_pokeluaText("Mono", "单声道"), _pokeluaText("Stereo", "立体声")}
+ local buttonModeOptions = {_pokeluaText("Normal", "普通"), "LR", "L=A"}
  local buttonModeOptionIndex = emu:read8(saveBlock2Addr + 0x13)
  local optionsValue = emu:read32(saveBlock2Addr + 0x14)
  local frameTypeOptionIndex = (optionsValue >> 3) & 0x1F
@@ -218,12 +227,12 @@ function showCurrentOptions(buffer, textSpeedOptionIndex)
  local battleStyleOptionIndex = (optionsValue >> 9) & 0x1
  local battleSceneOptionIndex = (optionsValue >> 10) & 0x1
  buffer:clear()
- buffer:print(string.format("Text Speed: %s\n", speedTextOptions[textSpeedOptionIndex + 1]))
- buffer:print(string.format("Battle Scene: %s\n", battleSceneOptions[battleSceneOptionIndex + 1]))
- buffer:print(string.format("Battle Style: %s\n", battleStyleOptions[battleStyleOptionIndex + 1]))
- buffer:print(string.format("Sound: %s\n", soundOptions[soundOptionIndex + 1]))
- buffer:print(string.format("Button Mode: %s\n", buttonModeOptions[buttonModeOptionIndex + 1]))
- buffer:print(string.format("Frame Style: %d", frameTypeOptionIndex + 1))
+ buffer:print(string.format(_pokeluaText("Text Speed: %s\n", "文字速度：%s\n"), speedTextOptions[textSpeedOptionIndex + 1]))
+ buffer:print(string.format(_pokeluaText("Battle Scene: %s\n", "战斗动画：%s\n"), battleSceneOptions[battleSceneOptionIndex + 1]))
+ buffer:print(string.format(_pokeluaText("Battle Style: %s\n", "战斗风格：%s\n"), battleStyleOptions[battleStyleOptionIndex + 1]))
+ buffer:print(string.format(_pokeluaText("Sound: %s\n", "声音：%s\n"), soundOptions[soundOptionIndex + 1]))
+ buffer:print(string.format(_pokeluaText("Button Mode: %s\n", "按键模式：%s\n"), buttonModeOptions[buttonModeOptionIndex + 1]))
+ buffer:print(string.format(_pokeluaText("Frame Style: %d", "边框样式：%d"), frameTypeOptionIndex + 1))
 end
 
 function getCurrentTextSpeedOptionIndex()
@@ -241,16 +250,16 @@ function pokemonSeenFlag(speciesDexNumber)
 end
 
 function showSaveInfo(buffer)
- local starterPokemonNames = {"Treecko", "Torchic", "Mudkip"}
+ local starterPokemonNames = {_pokeluaText("Treecko", "木守宫"), _pokeluaText("Torchic", "火稚鸡"), _pokeluaText("Mudkip", "水跃鱼")}
  local currentClockHour = emu:read8(saveBlock2Addr + 0xA2)
  local currentClockMinute = emu:read8(saveBlock2Addr + 0xA3)
  local starterPokemonIndex = emu:read8(starterPokemonIndexAddr)
  buffer:clear()
- buffer:print(string.format("Clock: %02d:%02d (%s:%s)\n", currentClockHour, currentClockMinute, currentClockHour ~= 0 and "XX" or "00", currentClockMinute ~= 0 and "XX" or "00"))
- buffer:print(string.format("Starter: %s\n", starterPokemonNames[starterPokemonIndex + 1]))
- buffer:print(string.format("Zigzagoon seen? %s\n", pokemonSeenFlag(263) == true and "Yes" or "No"))
- buffer:print(string.format("Wurmple seen? %s\n", pokemonSeenFlag(265) == true and "Yes" or "No"))
- buffer:print(string.format("Wingull seen? %s\n", pokemonSeenFlag(278) == true and "Yes" or "No"))
+ buffer:print(string.format(_pokeluaText("Clock: %02d:%02d (%s:%s)\n", "时钟：%02d：%02d (%s：%s)\n"), currentClockHour, currentClockMinute, currentClockHour ~= 0 and "XX" or "00", currentClockMinute ~= 0 and "XX" or "00"))
+ buffer:print(string.format(_pokeluaText("Starter: %s\n", "最初的伙伴：%s\n"), starterPokemonNames[starterPokemonIndex + 1]))
+ buffer:print(string.format(_pokeluaText("Zigzagoon seen? %s\n", "已遇见蛇纹熊？%s\n"), pokemonSeenFlag(263) == true and _pokeluaText("Yes", "是") or _pokeluaText("No", "否")))
+ buffer:print(string.format(_pokeluaText("Wurmple seen? %s\n", "已遇见刺尾虫？%s\n"), pokemonSeenFlag(265) == true and _pokeluaText("Yes", "是") or _pokeluaText("No", "否")))
+ buffer:print(string.format(_pokeluaText("Wingull seen? %s\n", "已遇见长翅鸥？%s\n"), pokemonSeenFlag(278) == true and _pokeluaText("Yes", "是") or _pokeluaText("No", "否")))
  showCurrentTime(buffer)
 end
 
@@ -271,8 +280,8 @@ function updateTENANNIVBuffer(buffer, textSpeedIndex, checksumSeed)
  local checksums = getChecksumsList()
  local currectXORChecksumSeed = getCurrentXORChecksumSeed(checksums)
  local segment0TargetSeed = currectXORChecksumSeed ~ checksumSeed ~ targetSeed
- buffer:print(string.format("Current Checksum Seed: %04X\n\n", currectXORChecksumSeed))
- buffer:print(string.format("Target Segment 0 Checksum Seed: %04X", segment0TargetSeed))
+ buffer:print(string.format(_pokeluaText("Current Checksum Seed: %04X\n\n", "当前校验和种子：%04X\n\n"), currectXORChecksumSeed))
+ buffer:print(string.format(_pokeluaText("Target Segment 0 Checksum Seed: %04X", "目标区段 0 校验和种子：%04X"), segment0TargetSeed))
 end
 
 function updateTrainerInfoBuffer(buffer)

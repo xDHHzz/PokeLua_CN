@@ -1,3 +1,12 @@
+-- Optional display language: "en" or "zh-Hans". Reload after changing.
+-- 可选显示语言：英文 "en"／简体中文 "zh-Hans"。修改后重新加载脚本。
+local POKELUA_LANGUAGE = "en"
+local function _pokeluaText(english, chinese)
+ if POKELUA_LANGUAGE == "zh-Hans" then return chinese end
+ return english
+end
+-- END POKELUA LOCALIZATION
+
 read32Bit = ReadValue32
 read16Bit = ReadValue16
 read8Bit = ReadValue8
@@ -13,57 +22,57 @@ local JUMP_DATA = {
  {0x40000001, 0x90000000}, {0x80000001, 0x20000000}, {0x1, 0x40000000}, {0x1, 0x80000000}}
 
 local natureNamesList = {
- "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
- "Bold", "Docile", "Relaxed", "Impish", "Lax",
- "Timid", "Hasty", "Serious", "Jolly", "Naive",
- "Modest", "Mild", "Quiet", "Bashful", "Rash",
- "Calm", "Gentle", "Sassy", "Careful", "Quirky"}
+ _pokeluaText("Hardy", "勤奋"), _pokeluaText("Lonely", "怕寂寞"), _pokeluaText("Brave", "勇敢"), _pokeluaText("Adamant", "固执"), _pokeluaText("Naughty", "顽皮"),
+ _pokeluaText("Bold", "大胆"), _pokeluaText("Docile", "坦率"), _pokeluaText("Relaxed", "悠闲"), _pokeluaText("Impish", "淘气"), _pokeluaText("Lax", "乐天"),
+ _pokeluaText("Timid", "胆小"), _pokeluaText("Hasty", "急躁"), _pokeluaText("Serious", "认真"), _pokeluaText("Jolly", "爽朗"), _pokeluaText("Naive", "天真"),
+ _pokeluaText("Modest", "内敛"), _pokeluaText("Mild", "慢吞吞"), _pokeluaText("Quiet", "冷静"), _pokeluaText("Bashful", "害羞"), _pokeluaText("Rash", "马虎"),
+ _pokeluaText("Calm", "温和"), _pokeluaText("Gentle", "温顺"), _pokeluaText("Sassy", "自大"), _pokeluaText("Careful", "慎重"), _pokeluaText("Quirky", "浮躁")}
 
 local HPTypeNamesList = {
- "Fighting", "Flying", "Poison", "Ground",
- "Rock", "Bug", "Ghost", "Steel",
- "Fire", "Water", "Grass", "Electric",
- "Psychic", "Ice", "Dragon", "Dark"}
+ _pokeluaText("Fighting", "格斗"), _pokeluaText("Flying", "飞行"), _pokeluaText("Poison", "毒"), _pokeluaText("Ground", "地面"),
+ _pokeluaText("Rock", "岩石"), _pokeluaText("Bug", "虫"), _pokeluaText("Ghost", "幽灵"), _pokeluaText("Steel", "钢"),
+ _pokeluaText("Fire", "火"), _pokeluaText("Water", "水"), _pokeluaText("Grass", "草"), _pokeluaText("Electric", "电"),
+ _pokeluaText("Psychic", "超能力"), _pokeluaText("Ice", "冰"), _pokeluaText("Dragon", "龙"), _pokeluaText("Dark", "恶")}
 
 local speciesNamesList = {
  -- Gen 1
- "NONE", "BULBASAUR", "IVYSAUR", "VENUSAUR", "CHARMANDER", "CHARMELEON", "CHARIZARD", "SQUIRTLE", "WARTORTLE", "BLASTOISE",
- "CATERPIE", "METAPOD", "BUTTERFREE", "WEEDLE", "KAKUNA", "BEEDRILL", "PIDGEY", "PIDGEOTTO", "PIDGEOT", "RATTATA", "RATICATE",
- "SPEAROW", "FEAROW", "EKANS", "ARBOK", "PIKACHU", "RAICHU", "SANDSHREW", "SANDSLASH", "NIDORAN♀", "NIDORINA", "NIDOQUEEN",
- "NIDORAN♂", "NIDORINO", "NIDOKING", "CLEFAIRY", "CLEFABLE", "VULPIX", "NINETALES", "JIGGLYPUFF", "WIGGLYTUFF", "ZUBAT", "GOLBAT",
- "ODDISH", "GLOOM", "VILEPLUME", "PARAS", "PARASECT", "VENONAT", "VENOMOTH", "DIGLETT", "DUGTRIO", "MEOWTH", "PERSIAN", "PSYDUCK",
- "GOLDUCK", "MANKEY", "PRIMEAPE", "GROWLITHE", "ARCANINE", "POLIWAG", "POLIWHIRL", "POLIWRATH", "ABRA", "KADABRA", "ALAKAZAM",
- "MACHOP", "MACHOKE", "MACHAMP", "BELLSPROUT", "WEEPINBELL", "VICTREEBEL", "TENTACOOL", "TENTACRUEL", "GEODUDE", "GRAVELER",
- "GOLEM", "PONYTA", "RAPIDASH", "SLOWPOKE", "SLOWBRO", "MAGNEMITE", "MAGNETON", "FARFETCH'D", "DODUO", "DODRIO", "SEEL", "DEWGONG",
- "GRIMER", "MUK", "SHELLDER", "CLOYSTER", "GASTLY", "HAUNTER", "GENGAR", "ONIX", "DROWZEE", "HYPNO", "KRABBY", "KINGLER", "VOLTORB",
- "ELECTRODE", "EXEGGCUTE", "EXEGGUTOR", "CUBONE", "MAROWAK", "HITMONLEE", "HITMONCHAN", "LICKITUNG", "KOFFING", "WEEZING", "RHYHORN",
- "RHYDON", "CHANSEY", "TANGELA", "KANGASKHAN", "HORSEA", "SEADRA", "GOLDEEN", "SEAKING", "STARYU", "STARMIE", "MR.MIME", "SCYTHER",
- "JYNX", "ELECTABUZZ", "MAGMAR", "PINSIR", "TAUROS", "MAGIKARP", "GYARADOS", "LAPRAS", "DITTO", "EEVEE", "VAPOREON", "JOLTEON",
- "FLAREON", "PORYGON", "OMANYTE", "OMASTAR", "KABUTO", "KABUTOPS", "AERODACTYL", "SNORLAX", "ARTICUNO", "ZAPDOS", "MOLTRES",
- "DRATINI", "DRAGONAIR", "DRAGONITE", "MEWTWO", "MEW",
+ _pokeluaText("NONE", "无"), _pokeluaText("BULBASAUR", "妙蛙种子"), _pokeluaText("IVYSAUR", "妙蛙草"), _pokeluaText("VENUSAUR", "妙蛙花"), _pokeluaText("CHARMANDER", "小火龙"), _pokeluaText("CHARMELEON", "火恐龙"), _pokeluaText("CHARIZARD", "喷火龙"), _pokeluaText("SQUIRTLE", "杰尼龟"), _pokeluaText("WARTORTLE", "卡咪龟"), _pokeluaText("BLASTOISE", "水箭龟"),
+ _pokeluaText("CATERPIE", "绿毛虫"), _pokeluaText("METAPOD", "铁甲蛹"), _pokeluaText("BUTTERFREE", "巴大蝶"), _pokeluaText("WEEDLE", "独角虫"), _pokeluaText("KAKUNA", "铁壳蛹"), _pokeluaText("BEEDRILL", "大针蜂"), _pokeluaText("PIDGEY", "波波"), _pokeluaText("PIDGEOTTO", "比比鸟"), _pokeluaText("PIDGEOT", "大比鸟"), _pokeluaText("RATTATA", "小拉达"), _pokeluaText("RATICATE", "拉达"),
+ _pokeluaText("SPEAROW", "烈雀"), _pokeluaText("FEAROW", "大嘴雀"), _pokeluaText("EKANS", "阿柏蛇"), _pokeluaText("ARBOK", "阿柏怪"), _pokeluaText("PIKACHU", "皮卡丘"), _pokeluaText("RAICHU", "雷丘"), _pokeluaText("SANDSHREW", "穿山鼠"), _pokeluaText("SANDSLASH", "穿山王"), _pokeluaText("NIDORAN♀", "尼多兰"), _pokeluaText("NIDORINA", "尼多娜"), _pokeluaText("NIDOQUEEN", "尼多后"),
+ _pokeluaText("NIDORAN♂", "尼多朗"), _pokeluaText("NIDORINO", "尼多力诺"), _pokeluaText("NIDOKING", "尼多王"), _pokeluaText("CLEFAIRY", "皮皮"), _pokeluaText("CLEFABLE", "皮可西"), _pokeluaText("VULPIX", "六尾"), _pokeluaText("NINETALES", "九尾"), _pokeluaText("JIGGLYPUFF", "胖丁"), _pokeluaText("WIGGLYTUFF", "胖可丁"), _pokeluaText("ZUBAT", "超音蝠"), _pokeluaText("GOLBAT", "大嘴蝠"),
+ _pokeluaText("ODDISH", "走路草"), _pokeluaText("GLOOM", "臭臭花"), _pokeluaText("VILEPLUME", "霸王花"), _pokeluaText("PARAS", "派拉斯"), _pokeluaText("PARASECT", "派拉斯特"), _pokeluaText("VENONAT", "毛球"), _pokeluaText("VENOMOTH", "摩鲁蛾"), _pokeluaText("DIGLETT", "地鼠"), _pokeluaText("DUGTRIO", "三地鼠"), _pokeluaText("MEOWTH", "喵喵"), _pokeluaText("PERSIAN", "猫老大"), _pokeluaText("PSYDUCK", "可达鸭"),
+ _pokeluaText("GOLDUCK", "哥达鸭"), _pokeluaText("MANKEY", "猴怪"), _pokeluaText("PRIMEAPE", "火暴猴"), _pokeluaText("GROWLITHE", "卡蒂狗"), _pokeluaText("ARCANINE", "风速狗"), _pokeluaText("POLIWAG", "蚊香蝌蚪"), _pokeluaText("POLIWHIRL", "蚊香君"), _pokeluaText("POLIWRATH", "蚊香泳士"), _pokeluaText("ABRA", "凯西"), _pokeluaText("KADABRA", "勇基拉"), _pokeluaText("ALAKAZAM", "胡地"),
+ _pokeluaText("MACHOP", "腕力"), _pokeluaText("MACHOKE", "豪力"), _pokeluaText("MACHAMP", "怪力"), _pokeluaText("BELLSPROUT", "喇叭芽"), _pokeluaText("WEEPINBELL", "口呆花"), _pokeluaText("VICTREEBEL", "大食花"), _pokeluaText("TENTACOOL", "玛瑙水母"), _pokeluaText("TENTACRUEL", "毒刺水母"), _pokeluaText("GEODUDE", "小拳石"), _pokeluaText("GRAVELER", "隆隆石"),
+ _pokeluaText("GOLEM", "隆隆岩"), _pokeluaText("PONYTA", "小火马"), _pokeluaText("RAPIDASH", "烈焰马"), _pokeluaText("SLOWPOKE", "呆呆兽"), _pokeluaText("SLOWBRO", "呆壳兽"), _pokeluaText("MAGNEMITE", "小磁怪"), _pokeluaText("MAGNETON", "三合一磁怪"), _pokeluaText("FARFETCH'D", "大葱鸭"), _pokeluaText("DODUO", "嘟嘟"), _pokeluaText("DODRIO", "嘟嘟利"), _pokeluaText("SEEL", "小海狮"), _pokeluaText("DEWGONG", "白海狮"),
+ _pokeluaText("GRIMER", "臭泥"), _pokeluaText("MUK", "臭臭泥"), _pokeluaText("SHELLDER", "大舌贝"), _pokeluaText("CLOYSTER", "刺甲贝"), _pokeluaText("GASTLY", "鬼斯"), _pokeluaText("HAUNTER", "鬼斯通"), _pokeluaText("GENGAR", "耿鬼"), _pokeluaText("ONIX", "大岩蛇"), _pokeluaText("DROWZEE", "催眠貘"), _pokeluaText("HYPNO", "引梦貘人"), _pokeluaText("KRABBY", "大钳蟹"), _pokeluaText("KINGLER", "巨钳蟹"), _pokeluaText("VOLTORB", "霹雳电球"),
+ _pokeluaText("ELECTRODE", "顽皮雷弹"), _pokeluaText("EXEGGCUTE", "蛋蛋"), _pokeluaText("EXEGGUTOR", "椰蛋树"), _pokeluaText("CUBONE", "卡拉卡拉"), _pokeluaText("MAROWAK", "嘎啦嘎啦"), _pokeluaText("HITMONLEE", "飞腿郎"), _pokeluaText("HITMONCHAN", "快拳郎"), _pokeluaText("LICKITUNG", "大舌头"), _pokeluaText("KOFFING", "瓦斯弹"), _pokeluaText("WEEZING", "双弹瓦斯"), _pokeluaText("RHYHORN", "独角犀牛"),
+ _pokeluaText("RHYDON", "钻角犀兽"), _pokeluaText("CHANSEY", "吉利蛋"), _pokeluaText("TANGELA", "蔓藤怪"), _pokeluaText("KANGASKHAN", "袋兽"), _pokeluaText("HORSEA", "墨海马"), _pokeluaText("SEADRA", "海刺龙"), _pokeluaText("GOLDEEN", "角金鱼"), _pokeluaText("SEAKING", "金鱼王"), _pokeluaText("STARYU", "海星星"), _pokeluaText("STARMIE", "宝石海星"), _pokeluaText("MR.MIME", "魔墙人偶"), _pokeluaText("SCYTHER", "飞天螳螂"),
+ _pokeluaText("JYNX", "迷唇姐"), _pokeluaText("ELECTABUZZ", "电击兽"), _pokeluaText("MAGMAR", "鸭嘴火兽"), _pokeluaText("PINSIR", "凯罗斯"), _pokeluaText("TAUROS", "肯泰罗"), _pokeluaText("MAGIKARP", "鲤鱼王"), _pokeluaText("GYARADOS", "暴鲤龙"), _pokeluaText("LAPRAS", "拉普拉斯"), _pokeluaText("DITTO", "百变怪"), _pokeluaText("EEVEE", "伊布"), _pokeluaText("VAPOREON", "水伊布"), _pokeluaText("JOLTEON", "雷伊布"),
+ _pokeluaText("FLAREON", "火伊布"), _pokeluaText("PORYGON", "多边兽"), _pokeluaText("OMANYTE", "菊石兽"), _pokeluaText("OMASTAR", "多刺菊石兽"), _pokeluaText("KABUTO", "化石盔"), _pokeluaText("KABUTOPS", "镰刀盔"), _pokeluaText("AERODACTYL", "化石翼龙"), _pokeluaText("SNORLAX", "卡比兽"), _pokeluaText("ARTICUNO", "急冻鸟"), _pokeluaText("ZAPDOS", "闪电鸟"), _pokeluaText("MOLTRES", "火焰鸟"),
+ _pokeluaText("DRATINI", "迷你龙"), _pokeluaText("DRAGONAIR", "哈克龙"), _pokeluaText("DRAGONITE", "快龙"), _pokeluaText("MEWTWO", "超梦"), _pokeluaText("MEW", "梦幻"),
  -- Gen 2
- "CHIKORITA", "BAYLEEF", "MEGANIUM", "CYNDAQUIL", "QUILAVA", "TYPHLOSION", "TOTODILE", "CROCONAW", "FERALIGATR", "SENTRET", "FURRET",
- "HOOTHOOT", "NOCTOWL", "LEDYBA", "LEDIAN", "SPINARAK", "ARIADOS", "CROBAT", "CHINCHOU", "LANTURN", "PICHU", "CLEFFA", "IGGLYBUFF",
- "TOGEPI", "TOGETIC", "NATU", "XATU", "MAREEP", "FLAAFFY", "AMPHAROS", "BELLOSSOM", "MARILL", "AZUMARILL", "SUDOWOODO", "POLITOED",
- "HOPPIP", "SKIPLOOM", "JUMPLUFF", "AIPOM", "SUNKERN", "SUNFLORA", "YANMA", "WOOPER", "QUAGSIRE", "ESPEON", "UMBREON", "MURKROW",
- "SLOWKING", "MISDREAVUS", "UNOWN", "WOBBUFFET", "GIRAFARIG", "PINECO", "FORRETRESS", "DUNSPARCE", "GLIGAR", "STEELIX", "SNUBBULL",
- "GRANBULL", "QWILFISH", "SCIZOR", "SHUCKLE", "HERACROSS", "SNEASEL", "TEDDIURSA", "URSARING", "SLUGMA", "MAGCARGO", "SWINUB",
- "PILOSWINE", "CORSOLA", "REMORAID", "OCTILLERY", "DELIBIRD", "MANTINE", "SKARMORY", "HOUNDOUR", "HOUNDOOM", "KINGDRA", "PHANPY",
- "DONPHAN", "PORYGON2", "STANTLER", "SMEARGLE", "TYROGUE", "HITMONTOP", "SMOOCHUM", "ELEKID", "MAGBY", "MILTANK", "BLISSEY", "RAIKOU",
- "ENTEI", "SUICUNE", "LARVITAR", "PUPITAR", "TYRANITAR", "LUGIA", "HO-OH", "CELEBI",
+ _pokeluaText("CHIKORITA", "菊草叶"), _pokeluaText("BAYLEEF", "月桂叶"), _pokeluaText("MEGANIUM", "大竺葵"), _pokeluaText("CYNDAQUIL", "火球鼠"), _pokeluaText("QUILAVA", "火岩鼠"), _pokeluaText("TYPHLOSION", "火暴兽"), _pokeluaText("TOTODILE", "小锯鳄"), _pokeluaText("CROCONAW", "蓝鳄"), _pokeluaText("FERALIGATR", "大力鳄"), _pokeluaText("SENTRET", "尾立"), _pokeluaText("FURRET", "大尾立"),
+ _pokeluaText("HOOTHOOT", "咕咕"), _pokeluaText("NOCTOWL", "猫头夜鹰"), _pokeluaText("LEDYBA", "芭瓢虫"), _pokeluaText("LEDIAN", "安瓢虫"), _pokeluaText("SPINARAK", "圆丝蛛"), _pokeluaText("ARIADOS", "阿利多斯"), _pokeluaText("CROBAT", "叉字蝠"), _pokeluaText("CHINCHOU", "灯笼鱼"), _pokeluaText("LANTURN", "电灯怪"), _pokeluaText("PICHU", "皮丘"), _pokeluaText("CLEFFA", "皮宝宝"), _pokeluaText("IGGLYBUFF", "宝宝丁"),
+ _pokeluaText("TOGEPI", "波克比"), _pokeluaText("TOGETIC", "波克基古"), _pokeluaText("NATU", "天然雀"), _pokeluaText("XATU", "天然鸟"), _pokeluaText("MAREEP", "咩利羊"), _pokeluaText("FLAAFFY", "茸茸羊"), _pokeluaText("AMPHAROS", "电龙"), _pokeluaText("BELLOSSOM", "美丽花"), _pokeluaText("MARILL", "玛力露"), _pokeluaText("AZUMARILL", "玛力露丽"), _pokeluaText("SUDOWOODO", "树才怪"), _pokeluaText("POLITOED", "蚊香蛙皇"),
+ _pokeluaText("HOPPIP", "毽子草"), _pokeluaText("SKIPLOOM", "毽子花"), _pokeluaText("JUMPLUFF", "毽子棉"), _pokeluaText("AIPOM", "长尾怪手"), _pokeluaText("SUNKERN", "向日种子"), _pokeluaText("SUNFLORA", "向日花怪"), _pokeluaText("YANMA", "蜻蜻蜓"), _pokeluaText("WOOPER", "乌波"), _pokeluaText("QUAGSIRE", "沼王"), _pokeluaText("ESPEON", "太阳伊布"), _pokeluaText("UMBREON", "月亮伊布"), _pokeluaText("MURKROW", "黑暗鸦"),
+ _pokeluaText("SLOWKING", "呆呆王"), _pokeluaText("MISDREAVUS", "梦妖"), _pokeluaText("UNOWN", "未知图腾"), _pokeluaText("WOBBUFFET", "果然翁"), _pokeluaText("GIRAFARIG", "麒麟奇"), _pokeluaText("PINECO", "榛果球"), _pokeluaText("FORRETRESS", "佛烈托斯"), _pokeluaText("DUNSPARCE", "土龙弟弟"), _pokeluaText("GLIGAR", "天蝎"), _pokeluaText("STEELIX", "大钢蛇"), _pokeluaText("SNUBBULL", "布鲁"),
+ _pokeluaText("GRANBULL", "布鲁皇"), _pokeluaText("QWILFISH", "千针鱼"), _pokeluaText("SCIZOR", "巨钳螳螂"), _pokeluaText("SHUCKLE", "壶壶"), _pokeluaText("HERACROSS", "赫拉克罗斯"), _pokeluaText("SNEASEL", "狃拉"), _pokeluaText("TEDDIURSA", "熊宝宝"), _pokeluaText("URSARING", "圈圈熊"), _pokeluaText("SLUGMA", "熔岩虫"), _pokeluaText("MAGCARGO", "熔岩蜗牛"), _pokeluaText("SWINUB", "小山猪"),
+ _pokeluaText("PILOSWINE", "长毛猪"), _pokeluaText("CORSOLA", "太阳珊瑚"), _pokeluaText("REMORAID", "铁炮鱼"), _pokeluaText("OCTILLERY", "章鱼桶"), _pokeluaText("DELIBIRD", "信使鸟"), _pokeluaText("MANTINE", "巨翅飞鱼"), _pokeluaText("SKARMORY", "盔甲鸟"), _pokeluaText("HOUNDOUR", "戴鲁比"), _pokeluaText("HOUNDOOM", "黑鲁加"), _pokeluaText("KINGDRA", "刺龙王"), _pokeluaText("PHANPY", "小小象"),
+ _pokeluaText("DONPHAN", "顿甲"), _pokeluaText("PORYGON2", "多边兽2型"), _pokeluaText("STANTLER", "惊角鹿"), _pokeluaText("SMEARGLE", "图图犬"), _pokeluaText("TYROGUE", "无畏小子"), _pokeluaText("HITMONTOP", "战舞郎"), _pokeluaText("SMOOCHUM", "迷唇娃"), _pokeluaText("ELEKID", "电击怪"), _pokeluaText("MAGBY", "鸭嘴宝宝"), _pokeluaText("MILTANK", "大奶罐"), _pokeluaText("BLISSEY", "幸福蛋"), _pokeluaText("RAIKOU", "雷公"),
+ _pokeluaText("ENTEI", "炎帝"), _pokeluaText("SUICUNE", "水君"), _pokeluaText("LARVITAR", "幼基拉斯"), _pokeluaText("PUPITAR", "沙基拉斯"), _pokeluaText("TYRANITAR", "班基拉斯"), _pokeluaText("LUGIA", "洛奇亚"), _pokeluaText("HO-OH", "凤王"), _pokeluaText("CELEBI", "时拉比"),
  -- Gen 3
- "TREECKO", "GROVYLE", "SCEPTILE", "TORCHIC", "COMBUSKEN", "BLAZIKEN", "MUDKIP", "MARSHTOMP", "SWAMPERT", "POOCHYENA", "MIGHTYENA",
- "ZIGZAGOON", "LINOONE", "WURMPLE", "SILCOON", "BEAUTIFLY", "CASCOON", "DUSTOX", "LOTAD", "LOMBRE", "LUDICOLO", "SEEDOT", "NUZLEAF",
- "SHIFTRY", "TAILLOW", "SWELLOW", "WINGULL", "PELIPPER", "RALTS", "KIRLIA", "GARDEVOIR", "SURSKIT", "MASQUERAIN", "SHROOMISH", "BRELOOM",
- "SLAKOTH", "VIGOROTH", "SLAKING", "NINCADA", "NINJASK", "SHEDINJA", "WHISMUR", "LOUDRED", "EXPLOUD", "MAKUHITA", "HARIYAMA", "AZURILL",
- "NOSEPASS", "SKITTY", "DELCATTY", "SABLEYE", "MAWILE", "ARON", "LAIRON", "AGGRON", "MEDITITE", "MEDICHAM", "ELECTRIKE", "MANECTRIC",
- "PLUSLE", "MINUN", "VOLBEAT", "ILLUMISE", "ROSELIA", "GULPIN", "SWALOT", "CARVANHA", "SHARPEDO", "WAILMER", "WAILORD", "NUMEL",
- "CAMERUPT", "TORKOAL", "SPOINK", "GRUMPIG", "SPINDA", "TRAPINCH", "VIBRAVA", "FLYGON", "CACNEA", "CACTURNE", "SWABLU", "ALTARIA",
- "ZANGOOSE", "SEVIPER", "LUNATONE", "SOLROCK", "BARBOACH", "WHISCASH", "CORPHISH", "CRAWDAUNT", "BALTOY", "CLAYDOL", "LILEEP", "CRADILY",
- "ANORITH", "ARMALDO", "FEEBAS", "MILOTIC", "CASTFORM", "KECLEON", "SHUPPET", "BANETTE", "DUSKULL", "DUSCLOPS", "TROPIUS", "CHIMECHO",
- "ABSOL", "WYNAUT", "SNORUNT", "GLALIE", "SPHEAL", "SEALEO", "WALREIN", "CLAMPERL", "HUNTAIL", "GOREBYSS", "RELICANTH", "LUVDISC", "BAGON",
- "SHELGON", "SALAMENCE", "BELDUM", "METANG", "METAGROSS", "REGIROCK", "REGICE", "REGISTEEL", "LATIAS", "LATIOS", "KYOGRE", "GROUDON",
- "RAYQUAZA", "JIRACHI", "DEOXYS"}
+ _pokeluaText("TREECKO", "木守宫"), _pokeluaText("GROVYLE", "森林蜥蜴"), _pokeluaText("SCEPTILE", "蜥蜴王"), _pokeluaText("TORCHIC", "火稚鸡"), _pokeluaText("COMBUSKEN", "力壮鸡"), _pokeluaText("BLAZIKEN", "火焰鸡"), _pokeluaText("MUDKIP", "水跃鱼"), _pokeluaText("MARSHTOMP", "沼跃鱼"), _pokeluaText("SWAMPERT", "巨沼怪"), _pokeluaText("POOCHYENA", "土狼犬"), _pokeluaText("MIGHTYENA", "大狼犬"),
+ _pokeluaText("ZIGZAGOON", "蛇纹熊"), _pokeluaText("LINOONE", "直冲熊"), _pokeluaText("WURMPLE", "刺尾虫"), _pokeluaText("SILCOON", "甲壳茧"), _pokeluaText("BEAUTIFLY", "狩猎凤蝶"), _pokeluaText("CASCOON", "盾甲茧"), _pokeluaText("DUSTOX", "毒粉蛾"), _pokeluaText("LOTAD", "莲叶童子"), _pokeluaText("LOMBRE", "莲帽小童"), _pokeluaText("LUDICOLO", "乐天河童"), _pokeluaText("SEEDOT", "橡实果"), _pokeluaText("NUZLEAF", "长鼻叶"),
+ _pokeluaText("SHIFTRY", "狡猾天狗"), _pokeluaText("TAILLOW", "傲骨燕"), _pokeluaText("SWELLOW", "大王燕"), _pokeluaText("WINGULL", "长翅鸥"), _pokeluaText("PELIPPER", "大嘴鸥"), _pokeluaText("RALTS", "拉鲁拉丝"), _pokeluaText("KIRLIA", "奇鲁莉安"), _pokeluaText("GARDEVOIR", "沙奈朵"), _pokeluaText("SURSKIT", "溜溜糖球"), _pokeluaText("MASQUERAIN", "雨翅蛾"), _pokeluaText("SHROOMISH", "蘑蘑菇"), _pokeluaText("BRELOOM", "斗笠菇"),
+ _pokeluaText("SLAKOTH", "懒人獭"), _pokeluaText("VIGOROTH", "过动猿"), _pokeluaText("SLAKING", "请假王"), _pokeluaText("NINCADA", "土居忍士"), _pokeluaText("NINJASK", "铁面忍者"), _pokeluaText("SHEDINJA", "脱壳忍者"), _pokeluaText("WHISMUR", "咕妞妞"), _pokeluaText("LOUDRED", "吼爆弹"), _pokeluaText("EXPLOUD", "爆音怪"), _pokeluaText("MAKUHITA", "幕下力士"), _pokeluaText("HARIYAMA", "铁掌力士"), _pokeluaText("AZURILL", "露力丽"),
+ _pokeluaText("NOSEPASS", "朝北鼻"), _pokeluaText("SKITTY", "向尾喵"), _pokeluaText("DELCATTY", "优雅猫"), _pokeluaText("SABLEYE", "勾魂眼"), _pokeluaText("MAWILE", "大嘴娃"), _pokeluaText("ARON", "可可多拉"), _pokeluaText("LAIRON", "可多拉"), _pokeluaText("AGGRON", "波士可多拉"), _pokeluaText("MEDITITE", "玛沙那"), _pokeluaText("MEDICHAM", "恰雷姆"), _pokeluaText("ELECTRIKE", "落雷兽"), _pokeluaText("MANECTRIC", "雷电兽"),
+ _pokeluaText("PLUSLE", "正电拍拍"), _pokeluaText("MINUN", "负电拍拍"), _pokeluaText("VOLBEAT", "电萤虫"), _pokeluaText("ILLUMISE", "甜甜萤"), _pokeluaText("ROSELIA", "毒蔷薇"), _pokeluaText("GULPIN", "溶食兽"), _pokeluaText("SWALOT", "吞食兽"), _pokeluaText("CARVANHA", "利牙鱼"), _pokeluaText("SHARPEDO", "巨牙鲨"), _pokeluaText("WAILMER", "吼吼鲸"), _pokeluaText("WAILORD", "吼鲸王"), _pokeluaText("NUMEL", "呆火驼"),
+ _pokeluaText("CAMERUPT", "喷火驼"), _pokeluaText("TORKOAL", "煤炭龟"), _pokeluaText("SPOINK", "跳跳猪"), _pokeluaText("GRUMPIG", "噗噗猪"), _pokeluaText("SPINDA", "晃晃斑"), _pokeluaText("TRAPINCH", "大颚蚁"), _pokeluaText("VIBRAVA", "超音波幼虫"), _pokeluaText("FLYGON", "沙漠蜻蜓"), _pokeluaText("CACNEA", "刺球仙人掌"), _pokeluaText("CACTURNE", "梦歌仙人掌"), _pokeluaText("SWABLU", "青绵鸟"), _pokeluaText("ALTARIA", "七夕青鸟"),
+ _pokeluaText("ZANGOOSE", "猫鼬斩"), _pokeluaText("SEVIPER", "饭匙蛇"), _pokeluaText("LUNATONE", "月石"), _pokeluaText("SOLROCK", "太阳岩"), _pokeluaText("BARBOACH", "泥泥鳅"), _pokeluaText("WHISCASH", "鲶鱼王"), _pokeluaText("CORPHISH", "龙虾小兵"), _pokeluaText("CRAWDAUNT", "铁螯龙虾"), _pokeluaText("BALTOY", "天秤偶"), _pokeluaText("CLAYDOL", "念力土偶"), _pokeluaText("LILEEP", "触手百合"), _pokeluaText("CRADILY", "摇篮百合"),
+ _pokeluaText("ANORITH", "太古羽虫"), _pokeluaText("ARMALDO", "太古盔甲"), _pokeluaText("FEEBAS", "丑丑鱼"), _pokeluaText("MILOTIC", "美纳斯"), _pokeluaText("CASTFORM", "飘浮泡泡"), _pokeluaText("KECLEON", "变隐龙"), _pokeluaText("SHUPPET", "怨影娃娃"), _pokeluaText("BANETTE", "诅咒娃娃"), _pokeluaText("DUSKULL", "夜巡灵"), _pokeluaText("DUSCLOPS", "彷徨夜灵"), _pokeluaText("TROPIUS", "热带龙"), _pokeluaText("CHIMECHO", "风铃铃"),
+ _pokeluaText("ABSOL", "阿勃梭鲁"), _pokeluaText("WYNAUT", "小果然"), _pokeluaText("SNORUNT", "雪童子"), _pokeluaText("GLALIE", "冰鬼护"), _pokeluaText("SPHEAL", "海豹球"), _pokeluaText("SEALEO", "海魔狮"), _pokeluaText("WALREIN", "帝牙海狮"), _pokeluaText("CLAMPERL", "珍珠贝"), _pokeluaText("HUNTAIL", "猎斑鱼"), _pokeluaText("GOREBYSS", "樱花鱼"), _pokeluaText("RELICANTH", "古空棘鱼"), _pokeluaText("LUVDISC", "爱心鱼"), _pokeluaText("BAGON", "宝贝龙"),
+ _pokeluaText("SHELGON", "甲壳龙"), _pokeluaText("SALAMENCE", "暴飞龙"), _pokeluaText("BELDUM", "铁哑铃"), _pokeluaText("METANG", "金属怪"), _pokeluaText("METAGROSS", "巨金怪"), _pokeluaText("REGIROCK", "雷吉洛克"), _pokeluaText("REGICE", "雷吉艾斯"), _pokeluaText("REGISTEEL", "雷吉斯奇鲁"), _pokeluaText("LATIAS", "拉帝亚斯"), _pokeluaText("LATIOS", "拉帝欧斯"), _pokeluaText("KYOGRE", "盖欧卡"), _pokeluaText("GROUDON", "固拉多"),
+ _pokeluaText("RAYQUAZA", "烈空坐"), _pokeluaText("JIRACHI", "基拉祈"), _pokeluaText("DEOXYS", "代欧奇希斯")}
 
 local nationalDexList = {
  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
@@ -260,7 +269,7 @@ function shinyCheck(PID, trainerID, trainerSID)
  local shinyTypeValue = trainerID ~ trainerSID ~ lowPID ~ highPID
 
  if shinyTypeValue < 8 then
-  return shinyTypeValue == 0 and " (Square)   " or " (Star)     "
+  return shinyTypeValue == 0 and _pokeluaText(" (Square)   ", "（方块）   ") or _pokeluaText(" (Star)     ", "（星星）     ")
  end
 
  return "            "
@@ -280,18 +289,18 @@ function getPokemonInfoText(pointer, trainerTID, trainerSID)
   local partyPID, partyOTID, partyOTSID, partySpeciesName, partyNatureName, partyHpIV, partyAtkIV, partyDefIV, partySpAtkIV, partySpDefIV,
         partySpdIV, partyHpType, partyHpPower, partyCatchRateValue = getPokemonInfo(partyAddr + (0x138 * i))
 
-  local speciesText = string.format("Species: %sSpecies: %s", enemySpeciesName, partySpeciesName)..(i == 0 and string.format("Species: %s", boxSpeciesName) or "")
-  local PIDsText = string.format("\nPID: %08X%sPID: %08X%s", enemyPID, shinyCheck(enemyPID, enemyOTID, enemyOTSID), partyPID, shinyCheck(partyPID, partyOTID, partyOTSID))..
-                   (i == 0 and string.format("PID: %08X%s", boxPID, shinyCheck(boxPID, boxOTID, boxOTSID)) or "")
-  local naturesText = string.format("\nNature: %sNature: %s", enemyNatureName, partyNatureName)..(i == 0 and string.format("Nature: %s", boxNatureName) or "")
-  local ivsText = string.format("\nIVs: %02d/%02d/%02d/%02d/%02d/%02d   IVs: %02d/%02d/%02d/%02d/%02d/%02d",
+  local speciesText = string.format(_pokeluaText("Species: %sSpecies: %s", "种类：%s种类：%s"), enemySpeciesName, partySpeciesName)..(i == 0 and string.format(_pokeluaText("Species: %s", "种类：%s"), boxSpeciesName) or "")
+  local PIDsText = string.format(_pokeluaText("\nPID: %08X%sPID: %08X%s", "\nPID：%08X%sPID：%08X%s"), enemyPID, shinyCheck(enemyPID, enemyOTID, enemyOTSID), partyPID, shinyCheck(partyPID, partyOTID, partyOTSID))..
+                   (i == 0 and string.format(_pokeluaText("PID: %08X%s", "PID：%08X%s"), boxPID, shinyCheck(boxPID, boxOTID, boxOTSID)) or "")
+  local naturesText = string.format(_pokeluaText("\nNature: %sNature: %s", "\n性格：%s性格：%s"), enemyNatureName, partyNatureName)..(i == 0 and string.format(_pokeluaText("Nature: %s", "性格：%s"), boxNatureName) or "")
+  local ivsText = string.format(_pokeluaText("\nIVs: %02d/%02d/%02d/%02d/%02d/%02d   IVs: %02d/%02d/%02d/%02d/%02d/%02d", "\n个体值：%02d/%02d/%02d/%02d/%02d/%02d   个体值：%02d/%02d/%02d/%02d/%02d/%02d"),
                                 enemyHpIV, enemyAtkIV, enemyDefIV, enemySpAtkIV, enemySpDefIV, enemySpdIV, partyHpIV, partyAtkIV, partyDefIV, partySpAtkIV, partySpDefIV, partySpdIV)..
-                                (i == 0 and string.format("   IVs: %02d/%02d/%02d/%02d/%02d/%02d", boxHpIV, boxAtkIV, boxDefIV, boxSpAtkIV, boxSpDefIV, boxSpdIV) or "")
-  local HPText = string.format("\nHPower: %s %02d", HPTypeNamesList[enemyHpType + 1], enemyHpPower)..setPadding(11, 5, string.format("%s %02d", HPTypeNamesList[enemyHpType + 1], enemyHpPower))..
-                 string.format("HPower: %s %02d", HPTypeNamesList[partyHpType + 1], partyHpPower)..
+                                (i == 0 and string.format(_pokeluaText("   IVs: %02d/%02d/%02d/%02d/%02d/%02d", "   个体值：%02d/%02d/%02d/%02d/%02d/%02d"), boxHpIV, boxAtkIV, boxDefIV, boxSpAtkIV, boxSpDefIV, boxSpdIV) or "")
+  local HPText = string.format(_pokeluaText("\nHPower: %s %02d", "\n觉醒力量：%s %02d"), HPTypeNamesList[enemyHpType + 1], enemyHpPower)..setPadding(11, 5, string.format("%s %02d", HPTypeNamesList[enemyHpType + 1], enemyHpPower))..
+                 string.format(_pokeluaText("HPower: %s %02d", "觉醒力量：%s %02d"), HPTypeNamesList[partyHpType + 1], partyHpPower)..
                  (i == 0 and setPadding(11, 5, string.format("%s %02d", HPTypeNamesList[partyHpType + 1], partyHpPower))..
-                 string.format("HPower: %s %02d", HPTypeNamesList[boxHpType + 1], boxHpPower) or "")
-  local catchRngText = string.format("\nCatch Rate Value: %d\n\n", enemyCatchRateValue)
+                 string.format(_pokeluaText("HPower: %s %02d", "觉醒力量：%s %02d"), HPTypeNamesList[boxHpType + 1], boxHpPower) or "")
+  local catchRngText = string.format(_pokeluaText("\nCatch Rate Value: %d\n\n", "\n捕获率值：%d\n\n"), enemyCatchRateValue)
 
   text = text..speciesText..PIDsText..naturesText..ivsText..HPText..catchRngText
  end
@@ -305,15 +314,15 @@ function onScriptUpdate()
  local pointer = read32Bit(pointerAddr)
  local trainerTID, trainerSID = 0, 0
 
- local RNGInfoText = string.format("Initial Seed: %08X\nCurrent Seed: %08X\nAdvances: %d", initialSeed, currentSeed, advances)
+ local RNGInfoText = string.format(_pokeluaText("Initial Seed: %08X\nCurrent Seed: %08X\nAdvances: %d", "初始种子：%08X\n当前种子：%08X\n推进数：%d"), initialSeed, currentSeed, advances)
  local infoText = "\n\n"
 
  if pointer ~= 0 then
   trainerTID, trainerSID = getTrainerIDs(pointer)
-  infoText = string.format("\n\nOpponent                 Party                    Box\n\n")..getPokemonInfoText(pointer, trainerTID, trainerSID)
+  infoText = string.format(_pokeluaText("\n\nOpponent                 Party                    Box\n\n", "\n\n对手                 同行                    盒子\n\n"))..getPokemonInfoText(pointer, trainerTID, trainerSID)
  end
 
- local IDsInfoText = string.format("\nTID: %05d\nSID: %05d", trainerTID, trainerSID)
+ local IDsInfoText = string.format(_pokeluaText("\nTID: %05d\nSID: %05d", "\nTID：%05d\nSID：%05d"), trainerTID, trainerSID)
 
  SetScreenText(RNGInfoText..infoText..IDsInfoText)
 end

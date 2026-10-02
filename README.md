@@ -1,3 +1,5 @@
+[简体中文使用说明 / Chinese language option](README.zh-CN.md)
+
 # PokeLua
 Useful lua scripts for RNG abusing in Pokémon games.
 

@@ -1,3 +1,12 @@
+-- Optional display language: "en" or "zh-Hans". Reload after changing.
+-- 可选显示语言：英文 "en"／简体中文 "zh-Hans"。修改后重新加载脚本。
+local POKELUA_LANGUAGE = "en"
+local function _pokeluaText(english, chinese)
+ if POKELUA_LANGUAGE == "zh-Hans" then return chinese end
+ return english
+end
+-- END POKELUA LOCALIZATION
+
 read32Bit = ReadValue32
 read8Bit = ReadValue8
 
@@ -12,17 +21,17 @@ local JUMP_DATA = {
  {0x40000001, 0x90000000}, {0x80000001, 0x20000000}, {0x1, 0x40000000}, {0x1, 0x80000000}}
 
 local natureNamesList = {
- "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
- "Bold", "Docile", "Relaxed", "Impish", "Lax",
- "Timid", "Hasty", "Serious", "Jolly", "Naive",
- "Modest", "Mild", "Quiet", "Bashful", "Rash",
- "Calm", "Gentle", "Sassy", "Careful", "Quirky"}
+ _pokeluaText("Hardy", "勤奋"), _pokeluaText("Lonely", "怕寂寞"), _pokeluaText("Brave", "勇敢"), _pokeluaText("Adamant", "固执"), _pokeluaText("Naughty", "顽皮"),
+ _pokeluaText("Bold", "大胆"), _pokeluaText("Docile", "坦率"), _pokeluaText("Relaxed", "悠闲"), _pokeluaText("Impish", "淘气"), _pokeluaText("Lax", "乐天"),
+ _pokeluaText("Timid", "胆小"), _pokeluaText("Hasty", "急躁"), _pokeluaText("Serious", "认真"), _pokeluaText("Jolly", "爽朗"), _pokeluaText("Naive", "天真"),
+ _pokeluaText("Modest", "内敛"), _pokeluaText("Mild", "慢吞吞"), _pokeluaText("Quiet", "冷静"), _pokeluaText("Bashful", "害羞"), _pokeluaText("Rash", "马虎"),
+ _pokeluaText("Calm", "温和"), _pokeluaText("Gentle", "温顺"), _pokeluaText("Sassy", "自大"), _pokeluaText("Careful", "慎重"), _pokeluaText("Quirky", "浮躁")}
 
 local HPTypeNamesList = {
- "Fighting", "Flying", "Poison", "Ground",
- "Rock", "Bug", "Ghost", "Steel",
- "Fire", "Water", "Grass", "Electric",
- "Psychic", "Ice", "Dragon", "Dark"}
+ _pokeluaText("Fighting", "格斗"), _pokeluaText("Flying", "飞行"), _pokeluaText("Poison", "毒"), _pokeluaText("Ground", "地面"),
+ _pokeluaText("Rock", "岩石"), _pokeluaText("Bug", "虫"), _pokeluaText("Ghost", "幽灵"), _pokeluaText("Steel", "钢"),
+ _pokeluaText("Fire", "火"), _pokeluaText("Water", "水"), _pokeluaText("Grass", "草"), _pokeluaText("Electric", "电"),
+ _pokeluaText("Psychic", "超能力"), _pokeluaText("Ice", "冰"), _pokeluaText("Dragon", "龙"), _pokeluaText("Dark", "恶")}
 
 local initialSeed, tempCurrentSeed, advances
 
@@ -113,7 +122,7 @@ function getHPTypeAndPower(hpIV, atkIV, defIV, spAtkIV, spDefIV, spdIV)
  local hpPower = (((((hpIV >> 1) & 1) + (2 * ((atkIV >> 1) & 1)) + (4 * ((defIV >> 1) & 1)) + (8 * ((spdIV >> 1) & 1))
                  + (16 * ((spAtkIV >> 1) & 1)) + (32 * ((spDefIV >> 1) & 1))) * 40) // 63) + 30
 
- return string.format("HPower: %s %02d", HPTypeNamesList[hpType + 1], hpPower)
+ return string.format(_pokeluaText("HPower: %s %02d", "觉醒力量：%s %02d"), HPTypeNamesList[hpType + 1], hpPower)
 end
 
 function getCelebiInfo(seed)
@@ -127,7 +136,7 @@ function getCelebiInfo(seed)
  local ability = (seed >> 16) & 1
  local pokemonPID = getPID(seed)
  local natureIndex = pokemonPID % 25
- local info = string.format("PID: %08X\nNature: %s\nIVs: %s", pokemonPID, natureNamesList[natureIndex + 1], table.concat(ivs, "/"))
+ local info = string.format(_pokeluaText("PID: %08X\nNature: %s\nIVs: %s", "PID：%08X\n性格：%s\n个体值：%s"), pokemonPID, natureNamesList[natureIndex + 1], table.concat(ivs, "/"))
  local hpTypeAndPower = getHPTypeAndPower(ivs[1], ivs[2], ivs[3], ivs[4], ivs[5], ivs[6])
  info = info.."\n"..hpTypeAndPower
 
@@ -147,7 +156,7 @@ function onScriptUpdate()
  getInitialSeeding(currentSeed)
  advances = advances + LCRNGDistance(tempCurrentSeed, currentSeed)
  local celebiInfo = getCelebiInfo(currentSeed)
- local text = string.format("Visual Advances: %d\n\nInitial Seed: %08X\nCurrent Seed: %08X\nAdvances: %d\n\nCelebi Info:\n%s",
+ local text = string.format(_pokeluaText("Visual Advances: %d\n\nInitial Seed: %08X\nCurrent Seed: %08X\nAdvances: %d\n\nCelebi Info:\n%s", "画面推进数：%d\n\n初始种子：%08X\n当前种子：%08X\n推进数：%d\n\n时拉比信息：\n%s"),
                             GetFrameCount(), initialSeed, currentSeed, advances, celebiInfo)
  SetScreenText(text)
 end
