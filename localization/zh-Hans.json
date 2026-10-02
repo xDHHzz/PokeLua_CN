@@ -8410,16 +8410,6 @@
     "（星星）"
   ],
   [
-    "offsets",
-    "growth",
-    "成长"
-  ],
-  [
-    "offsets",
-    "attack",
-    "攻击"
-  ],
-  [
     null,
     "IVs: %02d/%02d/%02d/%02d/%02d/%02d\nHPower: %s %d\n",
     "个体值：%02d/%02d/%02d/%02d/%02d/%02d\n觉醒力量：%s %d\n"
@@ -8433,16 +8423,6 @@
     null,
     "Move: %sPP: %d\n\n\n",
     "招式：%sPP：%d\n\n\n"
-  ],
-  [
-    null,
-    "growth",
-    "成长"
-  ],
-  [
-    null,
-    "attack",
-    "攻击"
   ],
   [
     null,
@@ -8552,12 +8532,12 @@
   [
     null,
     "Party Stats",
-    "同行状态"
+    "同行宝可梦能力值"
   ],
   [
     null,
     "Battle Party Stats",
-    "对战队伍状态"
+    "对战队伍能力值"
   ],
   [
     null,
@@ -8567,17 +8547,17 @@
   [
     null,
     "1st Floor Box Stats",
-    "1 楼盒子状态"
+    "1 楼盒中宝可梦能力值"
   ],
   [
     null,
     "2nd Floor Box Stats",
-    "2 楼盒子状态"
+    "2 楼盒中宝可梦能力值"
   ],
   [
     null,
     "DayCare Box Stats",
-    "寄放屋盒子状态"
+    "寄放屋宝可梦能力值"
   ],
   [
     null,
@@ -9237,7 +9217,7 @@
   [
     null,
     "Stats",
-    "状态"
+    "能力值"
   ],
   [
     "speciesNamesList",
@@ -12515,66 +12495,6 @@
     "无"
   ],
   [
-    "dateTime",
-    "month",
-    "月"
-  ],
-  [
-    "dateTime",
-    "day",
-    "日"
-  ],
-  [
-    "dateTime",
-    "year",
-    "年"
-  ],
-  [
-    "dateTime",
-    "hour",
-    "小时"
-  ],
-  [
-    "dateTime",
-    "minute",
-    "分钟"
-  ],
-  [
-    "dateTime",
-    "second",
-    "秒"
-  ],
-  [
-    null,
-    "year",
-    "年"
-  ],
-  [
-    null,
-    "month",
-    "月"
-  ],
-  [
-    null,
-    "day",
-    "日"
-  ],
-  [
-    null,
-    "hour",
-    "小时"
-  ],
-  [
-    null,
-    "minute",
-    "分钟"
-  ],
-  [
-    null,
-    "second",
-    "秒"
-  ],
-  [
     null,
     "Mode: ",
     "模式："
@@ -12588,11 +12508,6 @@
     null,
     "Initial Seed: %08X",
     "初始种子：%08X"
-  ],
-  [
-    null,
-    "advances",
-    "推进数"
   ],
   [
     null,
@@ -12752,7 +12667,7 @@
   [
     null,
     "Box Stats",
-    "盒子状态"
+    "盒中宝可梦能力值"
   ],
   [
     null,
@@ -13407,12 +13322,12 @@
   [
     null,
     "Saved state on slot %s",
-    "已保存状态到槽位 %s"
+    "已保存即时存档至槽位 %s"
   ],
   [
     null,
     "Loaded State %s",
-    "已读取状态 %s"
+    "已读取即时存档 %s"
   ],
   [
     "speciesNamesList",

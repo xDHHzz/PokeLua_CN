@@ -601,17 +601,17 @@ function setBackgroundBoxes()  -- Set transparent black boxes
  end
 end
 
-local dateTime = {[_pokeluaText("month", "月")] = 1, [_pokeluaText("day", "日")] = 1, [_pokeluaText("year", "年")] = 0, [_pokeluaText("hour", "小时")] = 0, [_pokeluaText("minute", "分钟")] = 0, [_pokeluaText("second", "秒")] = 0}
+local dateTime = {["month"] = 1, ["day"] = 1, ["year"] = 0, ["hour"] = 0, ["minute"] = 0, ["second"] = 0}
 
 function setDateTime()
  local dateTimeAddr = 0x23FFDE8
 
- dateTime[_pokeluaText("year", "年")] = string.format("%02X", read8Bit(dateTimeAddr))
- dateTime[_pokeluaText("month", "月")] = string.format("%02X", read8Bit(dateTimeAddr + 0x1))
- dateTime[_pokeluaText("day", "日")] = string.format("%02X", read8Bit(dateTimeAddr + 0x2))
- dateTime[_pokeluaText("hour", "小时")] = string.format("%02X", read8Bit(dateTimeAddr + 0x4) % 0x40)
- dateTime[_pokeluaText("minute", "分钟")] = string.format("%02X", read8Bit(dateTimeAddr + 0x5))
- dateTime[_pokeluaText("second", "秒")] = string.format("%02X", read8Bit(dateTimeAddr + 0x6))
+ dateTime["year"] = string.format("%02X", read8Bit(dateTimeAddr))
+ dateTime["month"] = string.format("%02X", read8Bit(dateTimeAddr + 0x1))
+ dateTime["day"] = string.format("%02X", read8Bit(dateTimeAddr + 0x2))
+ dateTime["hour"] = string.format("%02X", read8Bit(dateTimeAddr + 0x4) % 0x40)
+ dateTime["minute"] = string.format("%02X", read8Bit(dateTimeAddr + 0x5))
+ dateTime["second"] = string.format("%02X", read8Bit(dateTimeAddr + 0x6))
 end
 
 function drawArrowLeft(a, b, c)
@@ -702,30 +702,30 @@ function getMTArrayFistSeed(seed)
 end
 
 function setPredictedDateTime()
- local nextSeconds, nextMinutes, nextHours, nextDays = dateTime[_pokeluaText("second", "秒")], dateTime[_pokeluaText("minute", "分钟")], dateTime[_pokeluaText("hour", "小时")], dateTime[_pokeluaText("day", "日")]
+ local nextSeconds, nextMinutes, nextHours, nextDays = dateTime["second"], dateTime["minute"], dateTime["hour"], dateTime["day"]
 
- if dateTime[_pokeluaText("second", "秒")] + 6 >= 60 then
-  nextSeconds = (dateTime[_pokeluaText("second", "秒")] + 6) - 60
-  nextMinutes = dateTime[_pokeluaText("minute", "分钟")] + 1
+ if dateTime["second"] + 6 >= 60 then
+  nextSeconds = (dateTime["second"] + 6) - 60
+  nextMinutes = dateTime["minute"] + 1
  else
-  nextSeconds = dateTime[_pokeluaText("second", "秒")] + 6
-  nextMinutes = dateTime[_pokeluaText("minute", "分钟")]
+  nextSeconds = dateTime["second"] + 6
+  nextMinutes = dateTime["minute"]
  end
 
  if nextMinutes == 60 then
   nextMinutes = nextMinutes - 60
-  nextHours = dateTime[_pokeluaText("hour", "小时")] + 1
+  nextHours = dateTime["hour"] + 1
  else
-  nextMinutes = dateTime[_pokeluaText("minute", "分钟")]
-  nextHours = dateTime[_pokeluaText("hour", "小时")]
+  nextMinutes = dateTime["minute"]
+  nextHours = dateTime["hour"]
  end
 
  if nextHours == 24 then
   nextHours = nextHours - 24
-  nextDays = dateTime[_pokeluaText("day", "日")] + 1
+  nextDays = dateTime["day"] + 1
  else
-  nextHours = dateTime[_pokeluaText("hour", "小时")]
-  nextDays = dateTime[_pokeluaText("day", "日")]
+  nextHours = dateTime["hour"]
+  nextDays = dateTime["day"]
  end
 
  return nextSeconds, nextMinutes, nextHours, nextDays
@@ -734,15 +734,15 @@ end
 function buildSeedFromDelay(delay, predictSeedFlag)
  predictSeedFlag = predictSeedFlag or false
 
- local nextSeconds, nextMinutes, nextHours, nextDays = dateTime[_pokeluaText("second", "秒")], dateTime[_pokeluaText("minute", "分钟")], dateTime[_pokeluaText("hour", "小时")], dateTime[_pokeluaText("day", "日")]
+ local nextSeconds, nextMinutes, nextHours, nextDays = dateTime["second"], dateTime["minute"], dateTime["hour"], dateTime["day"]
 
  if predictSeedFlag then
   nextSeconds, nextMinutes, nextHours, nextDays = setPredictedDateTime()
  end
 
- local ab = ((dateTime[_pokeluaText("month", "月")] * nextDays) + nextMinutes + nextSeconds) % 0x100
+ local ab = ((dateTime["month"] * nextDays) + nextMinutes + nextSeconds) % 0x100
  local cd = nextHours
- local efgh = dateTime[_pokeluaText("year", "年")] + delay
+ local efgh = dateTime["year"] + delay
  local macAddr = 0xE4916  -- BizHawk MAC addres
 
  return ((ab * 0x1000000) + (cd * 0x10000) + efgh + macAddr) % 0x100000000
@@ -762,8 +762,8 @@ function handleMTAdvances(mtSeed, delay)
    mtCounter = 0
    cgearSeed = cgearSeedTest
    hitDelay = delay - 1
-   hitDate = string.format(_pokeluaText("20%s/%s/%s\n%s:%s:%s", "20%s/%s/%s\n%s：%s：%s"), dateTime[_pokeluaText("year", "年")], dateTime[_pokeluaText("month", "月")], dateTime[_pokeluaText("day", "日")],
-                           dateTime[_pokeluaText("hour", "小时")], dateTime[_pokeluaText("minute", "分钟")], dateTime[_pokeluaText("second", "秒")])
+   hitDate = string.format(_pokeluaText("20%s/%s/%s\n%s:%s:%s", "20%s/%s/%s\n%s：%s：%s"), dateTime["year"], dateTime["month"], dateTime["day"],
+                           dateTime["hour"], dateTime["minute"], dateTime["second"])
   end
 
   mtCounter = mtCounter + 1
@@ -820,7 +820,7 @@ function getRngInfo()
  local mtAdvances = (mtIndex - 624) + (mtCounter * 624)
 
  userdata.set("tempCurrentSeedLow", tempCurrentSeedLow)
- userdata.set(_pokeluaText("advances", "推进数"), advances)
+ userdata.set("advances", advances)
  userdata.set("mtCounter", mtCounter)
  userdata.set("cgearSeed", cgearSeed)
  userdata.set("hitDelay", hitDelay)
@@ -832,8 +832,8 @@ end
 function showDateTime()
  if mode[index] ~= _pokeluaText("None", "无") then
   gui.drawBox(214, 192, 254, 206, 0x7F000000, 0x7F000000)
-  gui.pixelText(214, 192, string.format("20%s/%s/%s", dateTime[_pokeluaText("year", "年")], dateTime[_pokeluaText("month", "月")], dateTime[_pokeluaText("day", "日")]))
-  gui.pixelText(214, 199, string.format(_pokeluaText("%s:%s:%s", "%s：%s：%s"), dateTime[_pokeluaText("hour", "小时")], dateTime[_pokeluaText("minute", "分钟")], dateTime[_pokeluaText("second", "秒")]))
+  gui.pixelText(214, 192, string.format("20%s/%s/%s", dateTime["year"], dateTime["month"], dateTime["day"]))
+  gui.pixelText(214, 199, string.format(_pokeluaText("%s:%s:%s", "%s：%s：%s"), dateTime["hour"], dateTime["minute"], dateTime["second"]))
  end
 end
 
@@ -938,8 +938,8 @@ function getSlotInput()
 end
 
 function getOffset(offsetType, orderIndex)
- local offsets = {[_pokeluaText("growth", "成长")] = {0,0,0,0,0,0, 1,1,2,3,2,3, 1,1,2,3,2,3, 1,1,2,3,2,3},
-                  [_pokeluaText("attack", "攻击")] = {1,1,2,3,2,3, 0,0,0,0,0,0, 2,3,1,1,3,2, 2,3,1,1,3,2}}
+ local offsets = {["growth"] = {0,0,0,0,0,0, 1,1,2,3,2,3, 1,1,2,3,2,3, 1,1,2,3,2,3},
+                  ["attack"] = {1,1,2,3,2,3, 0,0,0,0,0,0, 2,3,1,1,3,2, 2,3,1,1,3,2}}
 
  return offsets[offsetType][orderIndex]
 end
@@ -1048,11 +1048,11 @@ function showInfo(pidAddr)
  local movePP = {}
  local ivsPart = {}
 
- local growthOffset = getOffset(_pokeluaText("growth", "成长"), orderIndex) * 32
- local attacksOffset = getOffset(_pokeluaText("attack", "攻击"), orderIndex) * 32
+ local growthOffset = getOffset("growth", orderIndex) * 32
+ local attacksOffset = getOffset("attack", orderIndex) * 32
  local prng = checksum
 
- for i = 1, getOffset(_pokeluaText("growth", "成长"), orderIndex) do
+ for i = 1, getOffset("growth", orderIndex) do
   prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 cycles
  end
 
@@ -1081,7 +1081,7 @@ function showInfo(pidAddr)
 
  prng = checksum
 
- for i = 1, getOffset(_pokeluaText("attack", "攻击"), orderIndex) do
+ for i = 1, getOffset("attack", orderIndex) do
   prng = LCRNG(prng, 0x5F748241, 0xCBA72510)  -- 16 cycles
  end
 
@@ -1204,7 +1204,7 @@ function showRoamerInfo(roamerAddr)
  end
 end
 
-local prevKeyInfo, infoIndex, infoMode = {}, 1, {_pokeluaText("Gift", "礼物"), _pokeluaText("Party", "同行"), _pokeluaText("Party Stats", "同行状态"), _pokeluaText("Box", "盒子"), _pokeluaText("Box Stats", "盒子状态")}
+local prevKeyInfo, infoIndex, infoMode = {}, 1, {_pokeluaText("Gift", "礼物"), _pokeluaText("Party", "同行"), _pokeluaText("Party Stats", "同行宝可梦能力值"), _pokeluaText("Box", "盒子"), _pokeluaText("Box Stats", "盒中宝可梦能力值")}
 
 function getInfoInput()
  local leftInfoArrowColor = "gray"
@@ -1238,7 +1238,7 @@ function showPokemonInfo()
   local partySelectedPokemonAddr = partyAddr + (partySelectedSlotIndex * 0xDC)
 
   showInfo(partySelectedPokemonAddr)
- elseif infoMode[infoIndex] == _pokeluaText("Party Stats", "同行状态") then
+ elseif infoMode[infoIndex] == _pokeluaText("Party Stats", "同行宝可梦能力值") then
   local partyStatsSelectedSlotIndex = read8Bit(partyStatsSelectedSlotIndexAddr)
   local pokemonPartyStatsAddr = partyAddr + (partyStatsSelectedSlotIndex * 0xDC)
 
@@ -1249,7 +1249,7 @@ function showPokemonInfo()
   local boxSelectedPokemonAddr = boxAddr + (0x88 * boxSelectedSlotIndex) + (0x10 * currBoxIndex) + (0x88 * currBoxIndex * 0x1E)
 
   showInfo(boxSelectedPokemonAddr)
- elseif infoMode[infoIndex] == _pokeluaText("Box Stats", "盒子状态") then
+ elseif infoMode[infoIndex] == _pokeluaText("Box Stats", "盒中宝可梦能力值") then
   showInfo(pokemonBoxStatsAddr)
  end
 end
@@ -1259,7 +1259,7 @@ function setSaveStateValues()
  initialSeedHigh = userdata.get("initialSeedHigh")
  initialSeedLow = userdata.get("initialSeedLow")
  tempCurrentSeedLow = userdata.get("tempCurrentSeedLow")
- advances = userdata.get(_pokeluaText("advances", "推进数"))
+ advances = (userdata.get("advances") or userdata.get("推进数"))
  mtCounter = userdata.get("mtCounter")
  cgearSeed = userdata.get("cgearSeed")
  hitDelay = userdata.get("hitDelay")

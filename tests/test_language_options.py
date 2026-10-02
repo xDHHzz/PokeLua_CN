@@ -36,8 +36,9 @@ class UpstreamPreservationTests(unittest.TestCase):
   upstream=json.loads((ROOT/'localization/manifest.json').read_text(encoding="utf-8"))['upstream_commit']
   pattern=re.compile(r"_pokeluaText\((\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'), (\"(?:\\.|[^\"\\])*\")\)",re.S)
   for path in SCRIPTS:
-   body=path.read_text(encoding="utf-8").split('-- END POKELUA LOCALIZATION\n\n',1)[1]
+   body=re.sub(r'-- Optional display language:.*?-- END POKELUA LOCALIZATION\n\n','',path.read_text(encoding="utf-8"),count=1,flags=re.S)
    english=pattern.sub(lambda m:m.group(1),body)
+   english=english.replace('(userdata.get("advances") or userdata.get("推进数"))','userdata.get("advances")')
    original=subprocess.check_output(['git','show',upstream+':'+path.relative_to(ROOT).as_posix()],cwd=ROOT).decode().replace('\r\n','\n')
    self.assertEqual(english,original,path.name)
  def test_game_identity_is_not_localized_for_state_file_names(self):
@@ -57,4 +58,25 @@ class UpstreamPreservationTests(unittest.TestCase):
    if not compile_only(original)[0]:continue
    ok,error=compile_only(path.read_text(encoding="utf-8"));self.assertTrue(ok,f'{path}: {error}')
 
+class InternalKeyAndConfigTests(unittest.TestCase):
+ def test_persistent_and_structure_keys_stay_in_english(self):
+  for path in SCRIPTS:
+   self.assertIsNone(re.search(r'_pokeluaText\("(?:advances|growth|attack|year|month|day|hour|minute|second)"',path.read_text(encoding='utf-8')),path.name)
+ def test_legacy_chinese_saved_advances_can_still_be_loaded(self):
+  try:from lupa.lua54 import LuaRuntime
+  except ImportError:self.skipTest('Install lupa')
+  path=ROOT/'Gen 4/BizHawk/HGSS_RNG_BizHawk.lua'
+  code=path.read_text(encoding='utf-8')
+  # Locate the load-state assignment, not arithmetic updates.
+  expression=next(line.split(' = ',1)[1] for line in code.splitlines() if line.startswith(' advances = ') and 'userdata.get' in line)
+  lua=LuaRuntime(unpack_returned_tuples=True)
+  lua.execute('userdata={get=function(k) if k=="推进数" then return 123 end end}')
+  self.assertEqual(lua.eval(expression),123)
+ def test_bot_target_configuration_line_numbers_are_preserved(self):
+  for name in ['E_RNG_mGBA.lua','FRLG_RNG_mGBA.lua']:
+   path=ROOT/'Gen 3/mGBA'/name
+   original=subprocess.check_output(['git','show','b76caf669872897295db5304eebbdf5e53125efb:'+path.relative_to(ROOT).as_posix()],cwd=ROOT).decode().splitlines()
+   current=path.read_text(encoding='utf-8').splitlines()
+   count=2 if name.startswith('FRLG') else 1
+   self.assertEqual(current[:count],original[:count])
 if __name__=='__main__':unittest.main()

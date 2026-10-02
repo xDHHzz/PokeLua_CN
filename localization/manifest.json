@@ -49,12 +49,12 @@
     {
       "path": "Gen 3/mGBA/E_RNG_mGBA.lua",
       "upstream_sha256": "720419a408209553353c5715be522372acf433ab90765aa9e4b3e11e52800f54",
-      "translated_literals": 1372
+      "translated_literals": 1368
     },
     {
       "path": "Gen 3/mGBA/FRLG_RNG_mGBA.lua",
       "upstream_sha256": "a0a51f6f62a1052d7f0c72533886b4705fa314fd4b582ae0c55fca3cb13ed933",
-      "translated_literals": 1389
+      "translated_literals": 1385
     },
     {
       "path": "Gen 3/mGBA/RS_RNG_Checksums_mGBA.lua",
@@ -64,72 +64,72 @@
     {
       "path": "Gen 3/mGBA/RS_RNG_mGBA.lua",
       "upstream_sha256": "7e8ecfd04afb0511f8f19b6d2edbc1ab941c0532873eb159fe7ca00a6401575b",
-      "translated_literals": 1350
+      "translated_literals": 1346
     },
     {
       "path": "Gen 3/mGBA/Side/E_Held_Item_RNG_mGBA.lua",
       "upstream_sha256": "6d6850c111e59a921cea488372f408f00c01e044b7f995adaf92e004478daa58",
-      "translated_literals": 1261
+      "translated_literals": 1257
     },
     {
       "path": "Gen 3/mGBA/Side/FRLG_Held_Item_RNG_mGBA.lua",
       "upstream_sha256": "7b3319ca0a2038aca3d1510c61e89bd9692687bd43f1df492cb97fda0ed88716",
-      "translated_literals": 1261
+      "translated_literals": 1257
     },
     {
       "path": "Gen 3/mGBA/Side/RS_Held_Item_RNG_mGBA.lua",
       "upstream_sha256": "b3f635bfcaffe3198c0f1f898f07f86d8546827d24b0dffcc04a15745b28beaf",
-      "translated_literals": 1261
+      "translated_literals": 1257
     },
     {
       "path": "Gen 4/BizHawk/DP_RNG_BizHawk.lua",
       "upstream_sha256": "567848b3b98d8ae89acaeb5d6fdfbc1be9d59db6cda624be3b30f335244ec265",
-      "translated_literals": 2310
+      "translated_literals": 2268
     },
     {
       "path": "Gen 4/BizHawk/HGSS_RNG_BizHawk.lua",
       "upstream_sha256": "5939a95a9280e0fda4f9f20143592100be70ad65bda49ee757924ee4459cda5b",
-      "translated_literals": 1900
+      "translated_literals": 1858
     },
     {
       "path": "Gen 4/BizHawk/Pt_RNG_BizHawk.lua",
       "upstream_sha256": "1ffbea2c6ec5a1bf04bed830a10bfda6175f98f10dcebb9258de6e9796a3ec8f",
-      "translated_literals": 2399
+      "translated_literals": 2357
     },
     {
       "path": "Gen 4/DeSmuMe/DP_RNG_DeSmuMe.lua",
       "upstream_sha256": "da6de00d7c99bbc2883502f2b836f483391baefd9cd13ad211c9c32ae62f0a90",
-      "translated_literals": 2309
+      "translated_literals": 2269
     },
     {
       "path": "Gen 4/DeSmuMe/HGSS_RNG_DeSmuMe.lua",
       "upstream_sha256": "0b0de3657a5cea0c64c682c37e04539623c8ddde9275cfc891b85392a77f4741",
-      "translated_literals": 1899
+      "translated_literals": 1859
     },
     {
       "path": "Gen 4/DeSmuMe/Pt_RNG_DeSmuMe.lua",
       "upstream_sha256": "da9895f03294aa101329cc1c7961d27b87e9a891ad1d73175fe8c4623b454b2b",
-      "translated_literals": 2398
+      "translated_literals": 2358
     },
     {
       "path": "Gen 5/BizHawk/B2W2_RNG_BizHawk.lua",
       "upstream_sha256": "2f6ab802c513eed9e9fa20054d1b26c2cabce4af865bf175fb7eccc3d6a83b15",
-      "translated_literals": 2148
+      "translated_literals": 2122
     },
     {
       "path": "Gen 5/BizHawk/BW_RNG_BizHawk.lua",
       "upstream_sha256": "f237a906c1d7f80b5e930e2b14ae8cc1ac289d9ab219cd764835e6f92215eaf9",
-      "translated_literals": 2626
+      "translated_literals": 2573
     },
     {
       "path": "Gen 5/DeSmuMe/B2W2_RNG_DeSmuMe.lua",
       "upstream_sha256": "4b7ebff6d7ce3a8dccead35ae39ef9260ba0b202478b9d1001a07494b9cac7f1",
-      "translated_literals": 2147
+      "translated_literals": 2123
     },
     {
       "path": "Gen 5/DeSmuMe/BW_RNG_DeSmuMe.lua",
       "upstream_sha256": "73b103e5c7b90b1e06fc1ae60a5ac01fe89f61dcc61e08b9fcf4b2c690f8cce8",
-      "translated_literals": 2625
+      "translated_literals": 2574
     }
   ]
 }

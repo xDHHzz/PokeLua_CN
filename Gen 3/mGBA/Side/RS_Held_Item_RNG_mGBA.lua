@@ -448,8 +448,8 @@ function shinyCheck(PID, addr)
 end
 
 function getOffset(offsetType, orderIndex)
- local offsets = {[_pokeluaText("growth", "成长")] = {0,0,0,0,0,0, 1,1,2,3,2,3, 1,1,2,3,2,3, 1,1,2,3,2,3},
-                  [_pokeluaText("attack", "攻击")] = {1,1,2,3,2,3, 0,0,0,0,0,0, 2,3,1,1,3,2, 2,3,1,1,3,2},
+ local offsets = {["growth"] = {0,0,0,0,0,0, 1,1,2,3,2,3, 1,1,2,3,2,3, 1,1,2,3,2,3},
+                  ["attack"] = {1,1,2,3,2,3, 0,0,0,0,0,0, 2,3,1,1,3,2, 2,3,1,1,3,2},
                   ["misc"]   = {3,2,3,2,1,1, 3,2,3,2,1,1, 3,2,3,2,1,1, 0,0,0,0,0,0}}
 
  return offsets[offsetType][orderIndex] * 12
@@ -531,8 +531,8 @@ function showInfo(pidAddr, buffer)
  local pokemonIDs = emu:read32(pidAddr + 0x4)
  local orderIndex = (pokemonPID % 24) + 1
  local decryptionKey = pokemonPID ~ pokemonIDs
- local growthOffset = getOffset(_pokeluaText("growth", "成长"), orderIndex)
- local attacksOffset = getOffset(_pokeluaText("attack", "攻击"), orderIndex)
+ local growthOffset = getOffset("growth", orderIndex)
+ local attacksOffset = getOffset("attack", orderIndex)
  local miscOffset = getOffset("misc", orderIndex)
 
  local ivsAndAbilityValue = emu:read32(pidAddr + 0x20 + miscOffset + 0x4) ~ decryptionKey

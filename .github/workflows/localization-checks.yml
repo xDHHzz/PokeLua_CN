@@ -1,0 +1,25 @@
+name: Lua language and localization checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install Lua runtimes for syntax and regression checks
+        run: python -m pip install lupa==2.8
+      - name: Compile Lua scripts and verify localization
+        run: python -m unittest discover -s tests -v

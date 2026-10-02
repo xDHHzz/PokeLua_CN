@@ -1,3 +1,5 @@
+local botTargetInitialSeeds = {}  -- Write the bot target Initial Seeds you prefer inside the brackets preceding this text (e.g. {0, 0xBAD, 0xDEAD, 0xBEEF, 0xDAD, 0x1EE7, 0xDEAF, 0xB0B, 0xFEE, 0xFADE})
+local botTargetTIDs = {}  -- Write the bot target TIDs you prefer inside the brackets preceding this text (e.g. {0, 1, 1337, 8453, 8411, 11233, 11111, 22222, 33333, 12345})
 -- Optional display language: "en" or "zh-Hans". Reload after changing.
 -- 可选显示语言：英文 "en"／简体中文 "zh-Hans"。修改后重新加载脚本。
 local POKELUA_LANGUAGE = "en"
@@ -7,8 +9,6 @@ local function _pokeluaText(english, chinese)
 end
 -- END POKELUA LOCALIZATION
 
-local botTargetInitialSeeds = {}  -- Write the bot target Initial Seeds you prefer inside the brackets preceding this text (e.g. {0, 0xBAD, 0xDEAD, 0xBEEF, 0xDAD, 0x1EE7, 0xDEAF, 0xB0B, 0xFEE, 0xFADE})
-local botTargetTIDs = {}  -- Write the bot target TIDs you prefer inside the brackets preceding this text (e.g. {0, 1, 1337, 8453, 8411, 11233, 11111, 22222, 33333, 12345})
 
 local JUMP_DATA = {
  {0x41C64E6D, 0x6073}, {0xC2A29A69, 0xE97E7B6A}, {0xEE067F11, 0x31B0DDE4}, {0xCFDDDF21, 0x67DBB608},
@@ -617,8 +617,8 @@ function shinyCheck(PID, addr)
 end
 
 function getOffset(offsetType, orderIndex)
- local offsets = {[_pokeluaText("growth", "成长")] = {0,0,0,0,0,0, 1,1,2,3,2,3, 1,1,2,3,2,3, 1,1,2,3,2,3},
-                  [_pokeluaText("attack", "攻击")] = {1,1,2,3,2,3, 0,0,0,0,0,0, 2,3,1,1,3,2, 2,3,1,1,3,2},
+ local offsets = {["growth"] = {0,0,0,0,0,0, 1,1,2,3,2,3, 1,1,2,3,2,3, 1,1,2,3,2,3},
+                  ["attack"] = {1,1,2,3,2,3, 0,0,0,0,0,0, 2,3,1,1,3,2, 2,3,1,1,3,2},
                   ["misc"]   = {3,2,3,2,1,1, 3,2,3,2,1,1, 3,2,3,2,1,1, 0,0,0,0,0,0}}
 
  return offsets[offsetType][orderIndex] * 12
@@ -704,8 +704,8 @@ function showInfo(pidAddr, buffer)
  local pokemonIDs = emu:read32(pidAddr + 0x4)
  local orderIndex = (pokemonPID % 24) + 1
  local decryptionKey = pokemonPID ~ pokemonIDs
- local growthOffset = getOffset(_pokeluaText("growth", "成长"), orderIndex)
- local attacksOffset = getOffset(_pokeluaText("attack", "攻击"), orderIndex)
+ local growthOffset = getOffset("growth", orderIndex)
+ local attacksOffset = getOffset("attack", orderIndex)
  local miscOffset = getOffset("misc", orderIndex)
 
  local ivsAndAbilityValue = emu:read32(pidAddr + 0x20 + miscOffset + 0x4) ~ decryptionKey
@@ -839,7 +839,7 @@ function showRoamerInfo(buffer)
 end
 
 local prevKeyInfo, infoIndex, infoMode = {}, 1, {
-      _pokeluaText("Gift", "礼物"), _pokeluaText("Party", "同行"), _pokeluaText("Party Stats", "同行状态"), _pokeluaText("Battle Party Stats", "对战队伍状态"), _pokeluaText("Box", "盒子"), _pokeluaText("1st Floor Box Stats", "1 楼盒子状态"), _pokeluaText("2nd Floor Box Stats", "2 楼盒子状态"), _pokeluaText("DayCare Box Stats", "寄放屋盒子状态")}
+      _pokeluaText("Gift", "礼物"), _pokeluaText("Party", "同行"), _pokeluaText("Party Stats", "同行宝可梦能力值"), _pokeluaText("Battle Party Stats", "对战队伍能力值"), _pokeluaText("Box", "盒子"), _pokeluaText("1st Floor Box Stats", "1 楼盒中宝可梦能力值"), _pokeluaText("2nd Floor Box Stats", "2 楼盒中宝可梦能力值"), _pokeluaText("DayCare Box Stats", "寄放屋宝可梦能力值")}
 
 function getInfoInput(buffer)
  local key = emu:getKeys()
@@ -883,14 +883,14 @@ function showPokemonInfo(buffer)
 
   showInfo(boxSelectedPokemonAddr, buffer)
   showPokemonIDs(boxSelectedPokemonAddr, buffer)
- elseif infoMode[infoIndex] == _pokeluaText("Battle Party Stats", "对战队伍状态") then
+ elseif infoMode[infoIndex] == _pokeluaText("Battle Party Stats", "对战队伍能力值") then
   showInfo(pokemonBattleStatsScreenAddr, buffer)
   showPokemonIDs(pokemonBattleStatsScreenAddr, buffer)
- elseif infoMode[infoIndex] == _pokeluaText("1st Floor Box Stats", "1 楼盒子状态") then
+ elseif infoMode[infoIndex] == _pokeluaText("1st Floor Box Stats", "1 楼盒中宝可梦能力值") then
   showInfo(pokemonStatsScreenAddr, buffer)
   showPokemonIDs(pokemonStatsScreenAddr, buffer)
- elseif infoMode[infoIndex] == _pokeluaText("Party Stats", "同行状态") or infoMode[infoIndex] == _pokeluaText("2nd Floor Box Stats", "2 楼盒子状态")
-        or infoMode[infoIndex] == _pokeluaText("DayCare Box Stats", "寄放屋盒子状态")
+ elseif infoMode[infoIndex] == _pokeluaText("Party Stats", "同行宝可梦能力值") or infoMode[infoIndex] == _pokeluaText("2nd Floor Box Stats", "2 楼盒中宝可梦能力值")
+        or infoMode[infoIndex] == _pokeluaText("DayCare Box Stats", "寄放屋宝可梦能力值")
  then
   showInfo(pokemonStatsScreen2Addr, buffer)
   showPokemonIDs(pokemonStatsScreen2Addr, buffer)
